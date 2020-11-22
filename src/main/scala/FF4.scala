@@ -28,21 +28,30 @@ Author: YUAN Tong
 Version: V0.1
 Date: 22/11/2020
 */
-class FF4 extends Module{
+
+object BLOCK_SIZE_FF4 {
+  val DATA_M_FF4 = 4
+  val DATA_N_FF4 = 8
+  val TAG_M_FF4 = 4
+  val TAG_N_FF4 = 8
+}
+
+class FF4(val w: Int = 32, w_tag: Int = 8, val data_m: Int = BLOCK_SIZE_FF4.DATA_M_FF4, val data_n: Int = BLOCK_SIZE_FF4.DATA_N_FF4,
+          val tag_m: Int = BLOCK_SIZE_FF4.TAG_M_FF4, val tag_n: Int = BLOCK_SIZE_FF4.TAG_N_FF4) extends Module{
   val io = IO(new Bundle{
-    val in_data = Input(Vec(4, Vec(8, SInt(32.W))))
-    val in_tag = Input(Vec(4, Vec(8, UInt(1.W))))
-    val out_data = Output(Vec(2, Vec(4, SInt(32.W))))
-    val out_tag = Output(Vec(4, Vec(8, UInt(1.W))))
+    val in_data = Input(Vec(data_m*data_n, SInt(w.W)))
+    val in_tag = Input(Vec(tag_m*tag_n, UInt(w_tag.W)))
+    val out_data = Output(Vec(data_m*data_n, SInt(w.W)))
+    val out_tag = Output(Vec(tag_m*tag_n, UInt(w_tag.W)))
   })
 
-  val data = RegInit(Vec(2, Vec(4, SInt(32.W))))
-  val tag = RegInit(Vec(4, Vec(8, UInt(1.W))))
 
-  data := io.in_data
-  tag := io.in_tag
+  for(i <- 0 until data_m*data_n) {
+    io.out_data(i) := io.in_data(i)
+  }
 
-  io.out_data := data
-  io.out_tag := tag
+  for(i <- 0 until tag_m*tag_n) {
+    io.out_tag(i) := io.in_tag(i)
+  }
 }
 

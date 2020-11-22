@@ -33,11 +33,11 @@ class Mux8 extends Module{
   assign first input with 1 tag to output
   change the tag to 0 and output the new tag
    */
-  for (i <- 0 until 7) {
-    if (io.tag(i) == 1.U && find == 0.U) {
+  for (i <- 0 until 8) {
+    when (io.tag(i) === 1.U) {
       io.choice := io.int_in(i)
-      in_tag(i) := 0.U
-      find := 1.U
+    } .otherwise {
+      io.choice := 0.asSInt
     }
   }
 

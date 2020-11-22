@@ -12,11 +12,12 @@ FFA1    FF00
 
 FFA2    FF11
 
-They are FF8
+They are FF8block
 
 Inputs:
   in_data: a quarter of matrices A
 Regs:
+        M * N
   data: 2 * 8 32 Sint
 Outputs:
   out_data: a quarter of matrices A
@@ -26,16 +27,20 @@ Author: YUAN Tong
 Version: V0.1
 Date: 22/11/2020
 */
-class FF8 extends Module{
+
+object BLOCK_SIZE_FF8 {
+  val M_FF8 = 2
+  val N_FF8 = 8
+}
+
+class FF8(val w: Int = 32, val m: Int = BLOCK_SIZE_FF8.M_FF8, val n: Int = BLOCK_SIZE_FF8.N_FF8) extends Module{
   val io = IO(new Bundle{
-    val in_data = Input(Vec(2, Vec(8, SInt(32.W))))
-    val out_data = Output(Vec(2, Vec(8, SInt(32.W))))
+    val in_data = Input(Vec(m*n, SInt(w.W)))
+    val out_data = Output(Vec(m*n, SInt(w.W)))
   })
 
-  val data = RegInit(Vec(2, Vec(8, SInt(32.W))))
-
-  data := io.in_data
-
-  io.out_data := data
+  for(i <- 0 until m*n) {
+    io.out_data(i) := io.in_data(i)
+  }
 }
 
