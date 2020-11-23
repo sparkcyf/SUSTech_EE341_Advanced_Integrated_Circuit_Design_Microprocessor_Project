@@ -18,28 +18,25 @@ Function:
 
  */
 
+/**
+ * chisel3.util.Mux1H
+ * Builds a Mux tree out of the input signal vector using a one hot encoded select signal.
+ * Returns the output of the Mux tree.
+ * Check here: https://www.chisel-lang.org/api/latest/chisel3/util/Mux1H$.html
+ *
+ * WARNING: The data type of io.tag is bool, not int.
+ * Check here: https://github.com/chipsalliance/chisel3/wiki/Cookbook#how-do-i-create-a-vec-of-bools-from-a-uint
+ */
+
 class Mux8 extends Module{
   val io = IO(new Bundle{
     val int_in = Input(Vec(8, SInt(32.W)))
-    val tag = Input(Vec(8, UInt(1.W)))
+    val tag = Input(Vec(8, Bool()))
     val choice = Output(SInt(32.W))
     val out_tag = Output(Vec(8, UInt(1.W)))
   })
-
-  val find = RegInit(0.U)
-  val in_tag = RegInit(io.tag)
-
-  /*
-  assign first input with 1 tag to output
-  change the tag to 0 and output the new tag
-   */
-  for (i <- 0 until 8) {
-    when (io.tag(i) === 1.U) {
-      io.choice := io.int_in(i)
-    } .otherwise {
-      io.choice := 0.asSInt
-    }
-  }
-
-  io.out_tag := in_tag
+  io.choice := chisel3.util.Mux1H(io.tag, io.int_in)
+  io.out_tag := io.tag
 }
+
+
