@@ -29,12 +29,27 @@ Version: V0.1
 Date: 22/11/2020
 */
 
+/**
+ * M ROW
+ * N COL
+ */
+
 object BLOCK_SIZE_FF4 {
   val DATA_M_FF4 = 4
   val DATA_N_FF4 = 8
   val TAG_M_FF4 = 4
   val TAG_N_FF4 = 8
 }
+
+/**
+ *
+ * @param w
+ * @param w_tag
+ * @param data_m
+ * @param data_n
+ * @param tag_m
+ * @param tag_n
+ */
 
 class FF4(val w: Int = 32, w_tag: Int = 8, val data_m: Int = BLOCK_SIZE_FF4.DATA_M_FF4, val data_n: Int = BLOCK_SIZE_FF4.DATA_N_FF4,
           val tag_m: Int = BLOCK_SIZE_FF4.TAG_M_FF4, val tag_n: Int = BLOCK_SIZE_FF4.TAG_N_FF4) extends Module{

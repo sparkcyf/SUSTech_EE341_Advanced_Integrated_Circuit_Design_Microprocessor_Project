@@ -16,16 +16,16 @@ Outputs:
   result: the result stored in acc
  */
 
-class S8DP1 extends Module{
+class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
   val io = IO(new Bundle{
-    val int_in_A = Input(Vec(8, SInt(32.W)))
-    val int_in_B = Input(SInt(32.W))
-    val tag = Input(Vec(8, UInt(1.W)))
-    val out_tag = Output(Vec(8, UInt(1.W)))
-    val result = Output(SInt(32.W))
+    val int_in_A = Input(Vec(tag_width, SInt(w.W)))
+    val int_in_B = Input(SInt(w.W))
+    val tag = Input(Vec(tag_width, Bool())) //BOOL, NOT Int
+    val out_tag = Output(Vec(tag_width, UInt(1.W)))
+    val result = Output(SInt(w.W))
   })
 
-  val acc = RegInit(SInt(32.W))
+  val acc = RegInit(SInt(32.W), 0.S)
   val mux = Module(new Mux8)
 
   mux.io.int_in := io.int_in_A

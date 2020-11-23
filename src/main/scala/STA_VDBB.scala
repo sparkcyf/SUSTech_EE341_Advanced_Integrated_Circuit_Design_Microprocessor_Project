@@ -22,11 +22,21 @@ Outputs:
   out_C: matrices C, 4 rows 8 column (just like the structure)
  */
 
-class STA_VDBB extends Module{
+object BLOCK_SIZE_VDBB {
+  //M: Rows
+  //N: Column
+  val M_in_A = 4
+  val N_in_A = 16
+  val M_in_B = 16
+  val N_in_B = 8
+}
+
+class STA_VDBB(val w: Int = 32, val m_in_A: Int = BLOCK_SIZE_VDBB.M_in_A, val n_in_A: Int = BLOCK_SIZE_VDBB.N_in_A,
+               val m_in_B: Int = BLOCK_SIZE_VDBB.M_in_B, val n_in_B: Int = BLOCK_SIZE_VDBB.N_in_B) extends Module{
   val io = IO(new Bundle{
-    val in_A = Input(Vec(4, Vec(16, SInt(32.W))))
-    val in_B = Input(Vec(8, Vec(16, SInt(32.W))))
-    val out_C = Output(Vec(4, Vec(8, SInt(32.W))))
+    val in_A = Input(Vec(m_in_A, Vec(m_in_B, SInt(w.W))))
+    val in_B = Input(Vec(n_in_A, Vec(n_in_B, SInt(w.W))))
+    val out_C = Output(Vec(m_in_A, Vec(n_in_B, SInt(w.W))))
   })
 
   //Define modules
@@ -39,6 +49,7 @@ class STA_VDBB extends Module{
    */
 
 //  val S8DP1s = VecInit(Seq.fill(4)(VecInit(Seq.fill(8)(Module(new S8DP1).io))))
+
   val S8DP1s = Vec(4, Vec(8, (new S8DP1).io))
   val taggers = VecInit(Seq.fill(4)(Module(new tag).io))
   val muxs = VecInit(Seq.fill(4)(Module(new Mux8).io))
@@ -75,14 +86,18 @@ class STA_VDBB extends Module{
   for (i <- 0 until 7){
     //input A
     for (j <- 0 until 1) {
-      ffa1.io.in_data(j)(i) := io.in_A(j)(i)
-      ff00.io.in_data(j)(i) := io.in_A(j)(i)
+      //ffa1.io.in_data(j)(i) := io.in_A(j)(i)
+      //ff00.io.in_data(j)(i) := io.in_A(j)(i)
+      ffa1.io.in_data(ffa1.n * j + i + 1) := io.in_A(ffa1.n * j + i + 1)
+      ff00.io.in_data(ff00.n * j + i + 1) := io.in_A(ff00.n * j + i + 1)
     }
 
     //input and process B
     for (j <- 0 until 3) {
-      ffb1.io.in_data(j)(i) := io.in_B(j)(i)
-      ff01.io.in_data(j)(i) := io.in_B(j)(i)
+      //ffb1.io.in_data(j)(i) := io.in_B(j)(i)
+      //ff01.io.in_data(j)(i) := io.in_B(j)(i)
+      ffb1.io.in_data(ffb1.data_n * j + i + 1) := io.in_B(ffb1.data_n * j + i + 1)
+      ff01.io.in_data(ff01.data_n * j + i + 1) := io.in_B(ff01.data_n * j + i + 1)
     }
   }
 

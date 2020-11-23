@@ -1,24 +1,25 @@
 import chisel3._
 
 
-/*
-Description: tag the input data
-
-Inputs:
-  in_data: input data, 8 ints
-
-Regs:
-  tag 8 ints
-
-Outputs:
-  out_tag
-  out_count
-
-Function:
-
-Author: YUAN Tong
-Version: V0.1
-Date: 22/11/2020
+/**
+ * Description: tag the input data
+ *
+ * Inputs:
+ * in_data: input data, 8 ints
+ *
+ * Regs:
+ * tag 8 ints
+ *
+ * Outputs:
+ *
+ * out_tag, out_count
+ *
+ * Function:
+ *
+ * Author: YUAN Tong
+ * Version: V0.1
+ * Date: 22/11/2020
+ *
  */
 
 class tag extends Module{
