@@ -38,8 +38,6 @@ class Mux8(val tag_width: Int = 8) extends Module{
   })
 
   io.choice := chisel3.util.Mux1H(io.tag, io.int_in)
-  io.out_tag := io.tag
-
 }
 
 
