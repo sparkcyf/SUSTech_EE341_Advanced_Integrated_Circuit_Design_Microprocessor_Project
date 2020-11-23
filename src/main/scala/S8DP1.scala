@@ -30,8 +30,12 @@ class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
 
   mux.io.int_in := io.int_in_A
   mux.io.tag := io.tag
-  io.out_tag := mux.io.out_tag
-  io.result := acc
+
+  //set the first tag from 1 to 0
+
 
   acc := acc + io.int_in_B*mux.io.choice
+
+  io.out_tag := mux.io.out_tag
+  io.result := acc
 }
