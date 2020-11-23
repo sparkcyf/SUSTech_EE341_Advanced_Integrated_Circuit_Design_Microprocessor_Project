@@ -32,10 +32,11 @@ class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
   mux.io.tag := io.tag
 
   //set the first tag from 1 to 0
-
+  val tag_change = Module(new tag_refine)
 
   acc := acc + io.int_in_B*mux.io.choice
 
-  io.out_tag := mux.io.out_tag
+  tag_change.io.tag_in := io.tag
+  io.out_tag := tag_change.io.tag_out
   io.result := acc
 }

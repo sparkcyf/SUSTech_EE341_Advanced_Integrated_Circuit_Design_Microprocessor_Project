@@ -60,13 +60,17 @@ class FF4(val w: Int = 32, w_tag: Int = 8, val data_m: Int = BLOCK_SIZE_FF4.DATA
     val out_tag = Output(Vec(tag_m*tag_n, UInt(w_tag.W)))
   })
 
+  val data = RegInit(Vec(data_m*data_n, SInt(w.W)))
+  val tag = RegInit(Vec(tag_m*tag_n, UInt(w_tag.W)))
 
   for(i <- 0 until data_m*data_n) {
-    io.out_data(i) := io.in_data(i)
+    data(i) := io.in_data(i)
+    io.out_data(i) := data(i)
   }
 
   for(i <- 0 until tag_m*tag_n) {
-    io.out_tag(i) := io.in_tag(i)
+    tag(i) := io.in_tag(i)
+    io.out_tag(i) := tag(i)
   }
 }
 

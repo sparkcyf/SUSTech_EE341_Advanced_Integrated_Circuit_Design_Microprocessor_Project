@@ -38,9 +38,12 @@ class FF8(val w: Int = 32, val m: Int = BLOCK_SIZE_FF8.M_FF8, val n: Int = BLOCK
     val in_data = Input(Vec(m*n, SInt(w.W)))
     val out_data = Output(Vec(m*n, SInt(w.W)))
   })
+  
+  val data = RegInit(Vec(m*n, SInt(w.W)))
 
   for(i <- 0 until m*n) {
-    io.out_data(i) := io.in_data(i)
+    data(i) := io.in_data(i)
+    io.out_data(i) := data(i)
   }
 }
 

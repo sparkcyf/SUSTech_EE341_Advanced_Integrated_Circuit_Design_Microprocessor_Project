@@ -35,7 +35,6 @@ class Mux8(val tag_width: Int = 8) extends Module{
     val int_in = Input(Vec(tag_width, SInt(32.W)))
     val tag = Input(Vec(tag_width, Bool()))
     val choice = Output(SInt(32.W))
-    val out_tag = Output(Vec(tag_width, Bool()))
   })
 
   io.choice := chisel3.util.Mux1H(io.tag, io.int_in)
