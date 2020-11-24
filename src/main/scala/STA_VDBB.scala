@@ -86,16 +86,16 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
 
   //Loop1
   //Data fetch
-  for (i <- 0 until 7) {
+  for (i <- 0 until 8) {
     //input A
-    for (j <- 0 until 1) {
+    for (j <- 0 until 2) {
       ffa1.io.in_data(j)(i) := io.in_A(j)(i)
       ff00.io.in_data(j)(i) := io.in_A(j)(i)
 
     }
 
     //input and process B
-    for (j <- 0 until 3) {
+    for (j <- 0 until 4) {
       ffb1.io.in_data(j)(i) := io.in_B(j)(i)
       ff01.io.in_data(j)(i) := io.in_B(j)(i)
 
@@ -103,7 +103,7 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   }
 
   //Data tag for B
-  for (i <- 0 until 3) {
+  for (i <- 0 until 4) {
     taggers(i).in_data := ffb1.io.out_data(i)
     ffb1.io.in_tag(i) := taggers(i).out_tag
     ff01.io.in_tag(i) := taggers(i).out_tag
@@ -114,12 +114,12 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   + -
   - -
   */
-  for (k <- 0 until 7) {
+  for (k <- 0 until 8) {
     if (ffb1.io.out_tag != zero) {
-      for (i <- 0 until 3) { //column
+      for (i <- 0 until 4) { //column
         muxs(i).int_in := ffb1.io.out_data(i)
         muxs(i).tag := ffb1.io.out_tag(i)
-        for (j <- 0 until 1) { //row
+        for (j <- 0 until 2) { //row
           S8DP1s(j)(i).int_in_A := ffa1.io.out_data(j)
           S8DP1s(j)(i).int_in_B := muxs(i).choice
           S8DP1s(j)(i).tag := ffb1.io.out_tag(i)
@@ -133,13 +133,13 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
 
   //Loop2
   //Data fetch
-  for (i <- 0 until 7) {
+  for (i <- 0 until 8) {
     //input A
     /*
     - -
     + -
     */
-    for (j <- 0 until 1) {
+    for (j <- 0 until 2) {
       ffa2.io.in_data(j)(i) := io.in_A(j + 2)(i)
       ff11.io.in_data(j)(i) := io.in_A(j + 2)(i)
     }
@@ -149,14 +149,14 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
     - +
     - -
     */
-    for (j <- 0 until 3) {
+    for (j <- 0 until 4) {
       ffb2.io.in_data(j)(i) := io.in_B(j + 4)(i)
       ff10.io.in_data(j)(i) := io.in_B(j + 4)(i)
     }
   }
 
   //Data tag for B
-  for (i <- 0 until 3) {
+  for (i <- 0 until 4) {
     taggers(i).in_data := ffb1.io.out_data(i)
     ffb2.io.in_tag(i) := taggers(i).out_tag
     ff10.io.in_tag(i) := taggers(i).out_tag
@@ -167,13 +167,13 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   - 2
   3 4
   */
-  for (k <- 0 until 7) {
+  for (k <- 0 until 8) {
     if (ffb1.io.out_tag != zero) {
       //2
-      for (i <- 0 until 3) { //column
+      for (i <- 0 until 4) { //column
         muxs(i).int_in := ffb2.io.out_data(i)
         muxs(i).tag := ffb2.io.out_tag(i)
-        for (j <- 0 until 1) { //row
+        for (j <- 0 until 2) { //row
           S8DP1s(j)(i + 4).int_in_A := ff00.io.out_data(j)
           S8DP1s(j)(i + 4).int_in_B := muxs(i).choice
           S8DP1s(j)(i + 4).tag := ffb2.io.out_tag(i)
@@ -183,10 +183,10 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
       }
 
       //3
-      for (i <- 0 until 3) { //column
+      for (i <- 0 until 4) { //column
         muxs(i).int_in := ff01.io.out_data(i)
         muxs(i).tag := ff01.io.out_tag(i)
-        for (j <- 0 until 1) { //row
+        for (j <- 0 until 2) { //row
           S8DP1s(j + 2)(i).int_in_A := ff01.io.out_data(j)
           S8DP1s(j + 2)(i).int_in_B := muxs(i).choice
           S8DP1s(j + 2)(i).tag := ff01.io.out_tag(i)
@@ -196,10 +196,10 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
       }
 
       //4
-      for (i <- 0 until 3) { //column
+      for (i <- 0 until 4) { //column
         muxs(i).int_in := ff10.io.out_data(i)
         muxs(i).tag := ff10.io.out_tag(i)
-        for (j <- 0 until 1) { //row
+        for (j <- 0 until 2) { //row
           S8DP1s(j + 2)(i + 4).int_in_A := ff11.io.out_data(j)
           S8DP1s(j + 2)(i + 4).int_in_B := muxs(i).choice
           S8DP1s(j + 2)(i + 4).tag := ff10.io.out_tag(i)
@@ -213,13 +213,13 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
 
   //Loop3
   //Data fetch
-  for (i <- 0 until 7) {
+  for (i <- 0 until 8) {
     //input A
     /*
     - +
     - -
     */
-    for (j <- 0 until 1) {
+    for (j <- 0 until 2) {
       ffa1.io.in_data(j)(i) := io.in_A(j)(i + 8)
       ff00.io.in_data(j)(i) := io.in_A(j)(i + 8)
     }
@@ -229,14 +229,14 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
     - -
     + -
     */
-    for (j <- 0 until 3) {
+    for (j <- 0 until 4) {
       ffb1.io.in_data(j)(i) := io.in_B(j)(i + 8)
       ff01.io.in_data(j)(i) := io.in_B(j)(i + 8)
     }
   }
 
   //Data tag for B
-  for (i <- 0 until 3) {
+  for (i <- 0 until 4) {
     taggers(i).in_data := ffb1.io.out_data(i)
     ffb1.io.in_tag(i) := taggers(i).out_tag
     ff01.io.in_tag(i) := taggers(i).out_tag
@@ -247,12 +247,12 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   + -
   - -
   */
-  for (k <- 0 until 7) {
+  for (k <- 0 until 8) {
     if (ffb1.io.out_tag != zero) {
-      for (i <- 0 until 3) { //column
+      for (i <- 0 until 4) { //column
         muxs(i).int_in := ffb1.io.out_data(i)
         muxs(i).tag := ffb1.io.out_tag(i)
-        for (j <- 0 until 1) { //row
+        for (j <- 0 until 2) { //row
           S8DP1s(j)(i).int_in_A := ffa1.io.out_data(j)
           S8DP1s(j)(i).int_in_B := muxs(i).choice
           S8DP1s(j)(i).tag := ffb1.io.out_tag(i)
@@ -265,13 +265,13 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
 
   //Loop4
   //Data fetch
-  for (i <- 0 until 7) {
+  for (i <- 0 until 8) {
     //input A
     /*
     - -
     - +
     */
-    for (j <- 0 until 1) {
+    for (j <- 0 until 2) {
       ffa2.io.in_data(j)(i) := io.in_A(j + 2)(i + 8)
       ff11.io.in_data(j)(i) := io.in_A(j + 2)(i + 8)
     }
@@ -281,14 +281,14 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
     - -
     - +
     */
-    for (j <- 0 until 3) {
+    for (j <- 0 until 4) {
       ffb2.io.in_data(j)(i) := io.in_B(j + 4)(i + 8)
       ff10.io.in_data(j)(i) := io.in_B(j + 4)(i + 8)
     }
   }
 
   //Data tag for B
-  for (i <- 0 until 3) {
+  for (i <- 0 until 4) {
     taggers(i).in_data := ffb1.io.out_data(i)
     ffb2.io.in_tag(i) := taggers(i).out_tag
     ff10.io.in_tag(i) := taggers(i).out_tag
@@ -299,13 +299,13 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   - 2
   3 4
   */
-  for (k <- 0 until 7) {
+  for (k <- 0 until 8) {
     if (ffb1.io.out_tag != zero) {
       //2
-      for (i <- 0 until 3) { //column
+      for (i <- 0 until 4) { //column
         muxs(i).int_in := ffb2.io.out_data(i)
         muxs(i).tag := ffb2.io.out_tag(i)
-        for (j <- 0 until 1) { //row
+        for (j <- 0 until 2) { //row
           S8DP1s(j)(i + 4).int_in_A := ff00.io.out_data(j)
           S8DP1s(j)(i + 4).int_in_B := muxs(i).choice
           S8DP1s(j)(i + 4).tag := ffb2.io.out_tag(i)
@@ -315,10 +315,10 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
       }
 
       //3
-      for (i <- 0 until 3) { //column
+      for (i <- 0 until 4) { //column
         muxs(i).int_in := ff01.io.out_data(i)
         muxs(i).tag := ff01.io.out_tag(i)
-        for (j <- 0 until 1) { //row
+        for (j <- 0 until 2) { //row
           S8DP1s(j + 2)(i).int_in_A := ff01.io.out_data(j)
           S8DP1s(j + 2)(i).int_in_B := muxs(i).choice
           S8DP1s(j + 2)(i).tag := ff01.io.out_tag(i)
@@ -328,10 +328,10 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
       }
 
       //4
-      for (i <- 0 until 3) { //column
+      for (i <- 0 until 4) { //column
         muxs(i).int_in := ff10.io.out_data(i)
         muxs(i).tag := ff10.io.out_tag(i)
-        for (j <- 0 until 1) { //row
+        for (j <- 0 until 2) { //row
           S8DP1s(j + 2)(i + 4).int_in_A := ff11.io.out_data(j)
           S8DP1s(j + 2)(i + 4).int_in_B := muxs(i).choice
           S8DP1s(j + 2)(i + 4).tag := ff10.io.out_tag(i)
@@ -345,8 +345,8 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   //output
   val out_result = RegInit(Vec(Seq.fill(row_A)(Vec.fill(row_B)(0.S(32.W)))))
 
-  for (i <- 0 until 7) {
-    for (j <- 0 until 3) {
+  for (i <- 0 until 8) {
+    for (j <- 0 until 4) {
       out_result(j)(i) := S8DP1s(j)(i).result
     }
   }
