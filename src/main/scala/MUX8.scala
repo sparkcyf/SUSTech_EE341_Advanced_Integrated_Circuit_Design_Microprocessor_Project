@@ -30,24 +30,34 @@ Function:
  * Check here: https://github.com/chipsalliance/chisel3/wiki/Cookbook#how-do-i-create-a-vec-of-bools-from-a-uint
  */
 
-class Mux8(val tag_width: Int = 8) extends Module{
+class MUX8(val tag_width: Int = 8) extends Module {
   val io = IO(new Bundle {
-    val int_in = Input(Vec(tag_width, Vec(tag_width, SInt(32.W))))
+    val int_in = Input(Vec(tag_width, SInt(32.W)))
     val tag = Input(Vec(tag_width, Bool()))
     val choice = Output(SInt(32.W))
   })
 
-  io.choice := io.int_in(0)(0)
+  var find = false.B
+  io.choice := 0.S
 
-
-}
-
-object Main {
-  def main(args: Array[String]): Unit = {
-    println("Mux8 main function")
-    chisel3.Driver.execute(args, () => new Mux8)
+  for (i <- 0 until 8) {
+    if (find == false.B) {
+      if (io.tag(i) == true.B) {
+        io.choice := io.int_in(i)
+        find := true.B
+      }
+    }
   }
+
+
 }
+
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    println("Mux8 main function")
+//    chisel3.Driver.execute(args, () => new Mux8)
+//  }
+//}
 
 //run --target-dir generated --compiler verilog
 

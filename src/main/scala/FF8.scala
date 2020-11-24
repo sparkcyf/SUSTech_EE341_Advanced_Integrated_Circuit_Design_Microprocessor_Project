@@ -63,7 +63,7 @@ object BLOCK_SIZE_FF8 {
   val COL_FF8 = 8
 }
 
-class FF8(val w: Int = 32, val row: Int = BLOCK_SIZE_FF8.ROW_FF8, val col: Int = BLOCK_SIZE_FF8.COL_FF8) extends Module {
+class ff8(val w: Int = 32, val row: Int = BLOCK_SIZE_FF8.ROW_FF8, val col: Int = BLOCK_SIZE_FF8.COL_FF8) extends Module {
   val io = IO(new Bundle {
     val in_data = Input(Vec(row, Vec(col, SInt(w.W))))
     val out_data = Output(Vec(row, Vec(col, SInt(w.W))))
@@ -74,12 +74,12 @@ class FF8(val w: Int = 32, val row: Int = BLOCK_SIZE_FF8.ROW_FF8, val col: Int =
   io.out_data := io.in_data
 }
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    println("FF8 main function")
-    chisel3.Driver.execute(args, () => new FF8)
-  }
-}
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    println("FF8 main function")
+//    chisel3.Driver.execute(args, () => new FF8)
+//  }
+//}
 
 //run --target-dir generated --compiler verilog
 

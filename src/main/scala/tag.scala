@@ -23,18 +23,18 @@ import chisel3._
  */
 
 class tag extends Module{
-  val io = IO(new Bundle{
+  val io = IO(new Bundle {
     val in_data = Input(SInt(32.W))
-    val out_tag = Output(Vec(8, UInt(1.W)))
+    val out_tag = Output(Vec(8, Bool()))
     val out_count = Output(UInt(4.W))
   })
 
-  val tag = RegInit(Vec(8, UInt(1.W)))
-  val count = RegInit(UInt(4.W))
+  val tag = RegInit(Vec(Seq.fill(8)(false.B)))
+  val count = RegInit(0.U(4.W))
 
   for (i <- 0 until 7) {
     if (io.in_data != 0.S) {
-      tag(i) := 1.U
+      tag(i) := true.B
       count := count + 1.U
     }
   }
