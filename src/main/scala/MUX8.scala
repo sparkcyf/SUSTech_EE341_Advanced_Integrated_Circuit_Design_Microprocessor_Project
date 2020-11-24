@@ -37,18 +37,47 @@ class MUX8(val tag_width: Int = 8) extends Module {
     val choice = Output(SInt(32.W))
   })
 
-  var find = false.B
-  io.choice := 0.S
-
-  for (i <- 0 until 8) {
-    if (find == false.B) {
-      if (io.tag(i) == true.B) {
-        io.choice := io.int_in(i)
-        find := true.B
+  if (io.tag(0) == false.B) {
+    if (io.tag(1) == false.B) {
+      if (io.tag(2) == false.B) {
+        if (io.tag(3) == false.B) {
+          if (io.tag(4) == false.B) {
+            if (io.tag(5) == false.B) {
+              if (io.tag(6) == false.B) {
+                if (io.tag(7) == false.B) {
+                  io.choice := 0.S
+                }
+                else if (io.tag(0) == true.B) {
+                  io.choice := io.int_in(0)
+                }
+              }
+              else if (io.tag(1) == true.B) {
+                io.choice := io.int_in(1)
+              }
+            }
+            else if (io.tag(2) == true.B) {
+              io.choice := io.int_in(2)
+            }
+          }
+          else if (io.tag(3) == true.B) {
+            io.choice := io.int_in(3)
+          }
+        }
+        else if (io.tag(4) == true.B) {
+          io.choice := io.int_in(4)
+        }
+      }
+      else if (io.tag(5) == true.B) {
+        io.choice := io.int_in(5)
       }
     }
+    else if (io.tag(6) == true.B) {
+      io.choice := io.int_in(6)
+    }
   }
-
+  else if (io.tag(7) == true.B) {
+    io.choice := io.int_in(7)
+  }
 
 }
 

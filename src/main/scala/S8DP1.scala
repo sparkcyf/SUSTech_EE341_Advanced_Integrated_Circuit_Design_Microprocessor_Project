@@ -40,11 +40,11 @@ class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
   io.result := acc
 }
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    println("S8DP1 main function")
-    chisel3.Driver.execute(args, () => new S8DP1)
-  }
-}
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    println("S8DP1 main function")
+//    chisel3.Driver.execute(args, () => new S8DP1)
+//  }
+//}
 
 //run --target-dir generated --compiler verilog

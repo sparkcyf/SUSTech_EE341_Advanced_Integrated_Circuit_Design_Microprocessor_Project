@@ -24,7 +24,7 @@ import chisel3._
 
 class tag extends Module{
   val io = IO(new Bundle {
-    val in_data = Input(SInt(32.W))
+    val in_data = Input(Vec(8, SInt(32.W)))
     val out_tag = Output(Vec(8, Bool()))
     val out_count = Output(UInt(4.W))
   })
