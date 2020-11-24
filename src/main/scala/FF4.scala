@@ -74,3 +74,10 @@ class FF4(val w: Int = 32, w_tag: Int = 8, val data_m: Int = BLOCK_SIZE_FF4.DATA
   }
 }
 
+object Main {
+  def main(args: Array[String]): Unit = {
+    println("FF4 main function")
+    chisel3.Driver.execute(args, () => new FF4)
+  }
+}
+

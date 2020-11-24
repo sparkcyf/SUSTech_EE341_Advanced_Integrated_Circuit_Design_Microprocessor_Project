@@ -40,4 +40,14 @@ class Mux8(val tag_width: Int = 8) extends Module{
   io.choice := chisel3.util.Mux1H(io.tag, io.int_in)
 }
 
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    println("Mux8 main function")
+//    chisel3.Driver.execute(args, () => new Mux8)
+//  }
+//}
+
+//run --target-dir generated --compiler verilog
+
+
 

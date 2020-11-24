@@ -42,3 +42,13 @@ class tag extends Module{
   io.out_tag := tag
   io.out_count := count
 }
+
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    println("tag main function")
+//    chisel3.Driver.execute(args, () => new tag)
+//  }
+//}
+
+//run --target-dir generated --compiler verilog
+
