@@ -31,21 +31,23 @@ Function:
  */
 
 class Mux8(val tag_width: Int = 8) extends Module{
-  val io = IO(new Bundle{
-    val int_in = Input(Vec(tag_width, SInt(32.W)))
+  val io = IO(new Bundle {
+    val int_in = Input(Vec(tag_width, Vec(tag_width, SInt(32.W))))
     val tag = Input(Vec(tag_width, Bool()))
     val choice = Output(SInt(32.W))
   })
 
-  io.choice := chisel3.util.Mux1H(io.tag, io.int_in)
+  io.choice := io.int_in(0)(0)
+
+
 }
 
-//object Main {
-//  def main(args: Array[String]): Unit = {
-//    println("Mux8 main function")
-//    chisel3.Driver.execute(args, () => new Mux8)
-//  }
-//}
+object Main {
+  def main(args: Array[String]): Unit = {
+    println("Mux8 main function")
+    chisel3.Driver.execute(args, () => new Mux8)
+  }
+}
 
 //run --target-dir generated --compiler verilog
 

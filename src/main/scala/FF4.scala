@@ -68,16 +68,16 @@ class FF4(val w: Int = 32, w_tag: Int = 8, val data_m: Int = BLOCK_SIZE_FF4.DATA
     io.out_data(i) := data(i)
   }
 
-  for(i <- 0 until tag_m*tag_n) {
+  for (i <- 0 until tag_m * tag_n) {
     tag(i) := io.in_tag(i)
     io.out_tag(i) := tag(i)
   }
 }
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    println("FF4 main function")
-    chisel3.Driver.execute(args, () => new FF4)
-  }
-}
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    println("FF4 main function")
+//    chisel3.Driver.execute(args, () => new FF4)
+//  }
+//}
 
