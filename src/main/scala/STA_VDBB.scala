@@ -1,5 +1,11 @@
 import chisel3._
 
+import scala.math.{Pi, pow, sin}
+import breeze.signal.{OptOverhang, filter}
+import breeze.signal.support.{CanFilter, FIRKernel1D}
+import breeze.linalg.DenseVector
+
+
 /*
 Description: in this matrices A and B will be input, the they will be
   pre-processed, taged and devided into many parts, then we will let
@@ -48,6 +54,12 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   4 5 6 7
    */
 
+  //define signal
+  var calculation_finish = false
+  var calculation_start = false
+  var
+
+
   val taggers = Vec(Seq.fill(4)(Module(new tag).io))
   val muxs = Vec(Seq.fill(4)(Module(new MUX8).io))
   //  val S8DP1s = Vec(Seq.fill(row_A)(Seq.fill(row_B)(Module(new S8DP1).io)))
@@ -65,6 +77,7 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
 
 
   //Define Regs (FFs)
+  //ffax left ffbx upper
   val ffb1 = Module(new FF4)
   val ffb2 = Module(new FF4)
 
@@ -77,6 +90,9 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   val ffa2 = Module(new FF8)
   val ff11 = Module(new FF8)
 
+  //comm
+
+
   //  val zero = RegInit()
   val zero = RegInit(Vec(Seq.fill(row_B)(Vec(Seq.fill(col_B)(false.B)))))
 
@@ -87,14 +103,14 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   //Loop1
   //Data fetch
   for (i <- 0 until 8) {
-    //input A
+    //input A (left)
     for (j <- 0 until 2) {
       ffa1.io.in_data(j)(i) := io.in_A(j)(i)
       ff00.io.in_data(j)(i) := io.in_A(j)(i)
 
     }
 
-    //input and process B
+    //input and process B (upper)
     for (j <- 0 until 4) {
       ffb1.io.in_data(j)(i) := io.in_B(j)(i)
       ff01.io.in_data(j)(i) := io.in_B(j)(i)
@@ -113,6 +129,7 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   /*
   + -
   - -
+  left upper
   */
   for (k <- 0 until 8) {
     if (ffb1.io.out_tag != zero) {
@@ -343,7 +360,7 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   }
 
   //output
-  val out_result = RegInit(Vec(Seq.fill(row_A)(Vec.fill(row_B)(0.S(32.W)))))
+  val out_result = RegInit(Vec(Seq.fill(row_A)(VecInit(Seq.fill(row_B)(0.S(32.W))))))
 
   for (i <- 0 until 8) {
     for (j <- 0 until 4) {

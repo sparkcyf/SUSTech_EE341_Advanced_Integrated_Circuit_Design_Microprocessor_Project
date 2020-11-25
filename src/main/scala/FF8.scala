@@ -66,12 +66,17 @@ object BLOCK_SIZE_FF8 {
 class FF8(val w: Int = 32, val row: Int = BLOCK_SIZE_FF8.ROW_FF8, val col: Int = BLOCK_SIZE_FF8.COL_FF8) extends Module {
   val io = IO(new Bundle {
     val in_data = Input(Vec(row, Vec(col, SInt(w.W))))
+    //val in_have_data = Input(Bool())
     val out_data = Output(Vec(row, Vec(col, SInt(w.W))))
+    //var out_have_data = Output(Bool())
   })
 
   val data = RegInit(Vec(Seq.fill(row)(Vec(Seq.fill(col)(0.S(w.W))))))
   data := io.in_data
   io.out_data := data
+
+  //io.out_have_data := io.in_have_data
+
 }
 
 //object Main {
