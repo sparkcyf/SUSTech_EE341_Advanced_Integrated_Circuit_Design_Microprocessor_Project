@@ -35,49 +35,47 @@ Date: 22/11/2020
  */
 
 object BLOCK_SIZE_FF4 {
-  val DATA_M_FF4 = 4
-  val DATA_N_FF4 = 8
-  val TAG_M_FF4 = 4
-  val TAG_N_FF4 = 8
+  val DATA_ROW_FF4 = 4
+  val DATA_COL_FF4 = 8
+  val TAG_ROW_FF4 = 4
+  val TAG_COL_FF4 = 8
 }
 
 /**
  *
  * @param w
  * @param w_tag
- * @param data_m
- * @param data_n
- * @param tag_m
- * @param tag_n
+ * @param data_row
+ * @param data_col
+ * @param tag_row
+ * @param tag_col
  */
 
-class FF4(val w: Int = 32, w_tag: Int = 8, val data_m: Int = BLOCK_SIZE_FF4.DATA_M_FF4, val data_n: Int = BLOCK_SIZE_FF4.DATA_N_FF4,
-          val tag_m: Int = BLOCK_SIZE_FF4.TAG_M_FF4, val tag_n: Int = BLOCK_SIZE_FF4.TAG_N_FF4) extends Module{
-  val io = IO(new Bundle{
-    val in_data = Input(Vec(data_m*data_n, SInt(w.W)))
-    val in_tag = Input(Vec(tag_m*tag_n, UInt(w_tag.W)))
-    val out_data = Output(Vec(data_m*data_n, SInt(w.W)))
-    val out_tag = Output(Vec(tag_m*tag_n, UInt(w_tag.W)))
+class FF4(val w: Int = 32, w_tag: Int = 8, val data_row: Int = BLOCK_SIZE_FF4.DATA_ROW_FF4, val data_col: Int = BLOCK_SIZE_FF4.DATA_COL_FF4,
+          val tag_row: Int = BLOCK_SIZE_FF4.TAG_ROW_FF4, val tag_col: Int = BLOCK_SIZE_FF4.TAG_COL_FF4) extends Module {
+  val io = IO(new Bundle {
+    val in_data = Input(Vec(data_row, Vec(data_col, SInt(w.W))))
+    val in_tag = Input(Vec(tag_row, Vec(tag_col, Bool())))
+    val out_data = Output(Vec(data_row, Vec(data_col, SInt(w.W))))
+    val out_tag = Output(Vec(tag_row, Vec(tag_col, Bool())))
   })
 
-  val data = RegInit(Vec(data_m*data_n, SInt(w.W)))
-  val tag = RegInit(Vec(tag_m*tag_n, UInt(w_tag.W)))
+  val data = RegInit(Vec(Seq.fill(data_row)(Vec(Seq.fill(data_col)(0.S(w.W))))))
+  val tag = RegInit(Vec(Seq.fill(tag_row)(Vec(Seq.fill(tag_col)(false.B)))))
 
-  for(i <- 0 until data_m*data_n) {
-    data(i) := io.in_data(i)
-    io.out_data(i) := data(i)
-  }
+  data := io.in_data
+  tag := io.in_tag
 
-  for(i <- 0 until tag_m*tag_n) {
-    tag(i) := io.in_tag(i)
-    io.out_tag(i) := tag(i)
-  }
+  io.out_data := data
+  io.out_tag := tag
 }
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    println("FF4 main function")
-    chisel3.Driver.execute(args, () => new FF4)
-  }
-}
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    println("FF4 main function")
+//    chisel3.Driver.execute(args, () => new FF4)
+//  }
+//}
+
+//run --target-dir generated --compiler verilog
 
