@@ -14,6 +14,17 @@ class FF4Test(c: FF4) extends PeekPokeTester(c) {
         expect(c.io.out_data(i)(j),j.S)
       }
   }
+   for (i <- 0 until 4) {
+    for (j <- 0 until 8) {
+
+      poke(c.io.in_tag(i)(j),true.B)
+    }
+  }
+  for (i <- 0 until 4) {
+    for (j <- 0 until 8){
+      expect(c.io.out_tag(i)(j),true.B)
+    }
+  }
   }
 
 class FF4Tester extends ChiselFlatSpec {
