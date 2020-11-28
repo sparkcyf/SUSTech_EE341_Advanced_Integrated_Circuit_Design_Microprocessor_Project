@@ -71,8 +71,8 @@ class FF8(val w: Int = 32, val row: Int = BLOCK_SIZE_FF8.ROW_FF8, val col: Int =
     //var out_have_data = Output(Bool())
   })
 
-  val data = RegInit(Vec(Seq.fill(row)(Vec(Seq.fill(col)(0.S(w.W))))))
-  data := io.in_data
+  var data = RegInit(Vec(Seq.fill(row)(Vec(Seq.fill(col)(0.S(w.W))))))
+  data = io.in_data
   io.out_data := data
 
   //io.out_have_data := io.in_have_data
