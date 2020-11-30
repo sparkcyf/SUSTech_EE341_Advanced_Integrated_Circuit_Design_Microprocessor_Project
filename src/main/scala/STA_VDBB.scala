@@ -57,7 +57,8 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
 
   val taggers = Vec(Seq.fill(4)(Module(new tag).io))
   val muxs = Vec(Seq.fill(4)(Module(new MUX8).io))
-  io.out_C := Vec(row_A, Vec(row_B, 0.S))
+  //  io.out_C := Vec(row_A, Vec(row_B, 0.S))
+  io.out_C := Vec(Seq.fill(row_A)(Vec(Seq.fill(row_B)(0.S))))
   //  val S8DP1s = Vec(Seq.fill(row_A)(Seq.fill(row_B)(Module(new S8DP1).io)))
 
   val s8DP1s_1 = Vec(Seq.fill(row_B)(Module(new S8DP1).io))
@@ -308,11 +309,11 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
 }
 
 
-//object Main {
-//  def main(args: Array[String]): Unit = {
-//    println("STA-VDBB main function")
-//    chisel3.Driver.execute(args, () => new STA_VDBB())
-//  }
-//}
+object Main {
+  def main(args: Array[String]): Unit = {
+    println("STA-VDBB main function")
+    chisel3.Driver.execute(args, () => new STA_VDBB())
+  }
+}
 
 //run --target-dir generated --compiler verilog

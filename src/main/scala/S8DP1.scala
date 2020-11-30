@@ -28,7 +28,7 @@ signal:
 class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
   val io = IO(new Bundle {
     val in_A = Input(Vec(tag_width, SInt(w.W)))
-    val in_B = Input(SInt(w.W))
+    val in_B = Input(Vec(tag_width, SInt(w.W)))
     val in_tag = Input(Vec(tag_width, Bool())) //BOOL, NOT Int
     val result = Output(SInt(w.W))
 
@@ -43,6 +43,10 @@ class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
   val mux = Module(new MUX8)
   mux.io.int_in := io.in_A
   mux.io.in_tag := tag
+  val mux2 = Module(new MUX8)
+  mux2.io.int_in := io.in_B
+  mux2.io.in_tag := tag
+
   val tag_change = Module(new tag_refresh)
   tag_change.io.tag_in := tag
 
@@ -61,7 +65,7 @@ class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
 
   switch(stateReg) {
     is(cal) {
-      acc := acc + io.in_B * mux.io.choice
+      acc := acc + mux2.io.choice * mux.io.choice
       tag_change.io.tag_in := tag
       tag := tag_change.io.tag_out
 
@@ -79,11 +83,11 @@ class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
 
 }
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    println("S8DP1 main function")
-    chisel3.Driver.execute(args, () => new S8DP1)
-  }
-}
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    println("S8DP1 main function")
+//    chisel3.Driver.execute(args, () => new S8DP1)
+//  }
+//}
 
 //run --target-dir generated --compiler verilog
