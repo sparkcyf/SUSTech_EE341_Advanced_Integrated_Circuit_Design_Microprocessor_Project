@@ -1,4 +1,5 @@
 import chisel3._
+import chisel3.util._
 
 import scala.math.{Pi, pow, sin}
 import breeze.signal.{OptOverhang, filter}
@@ -54,330 +55,264 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   4 5 6 7
    */
 
-  //define signal
-  var calculation_finish = false
-  var calculation_start = false
-  var
-
-
   val taggers = Vec(Seq.fill(4)(Module(new tag).io))
   val muxs = Vec(Seq.fill(4)(Module(new MUX8).io))
+  io.out_C := Vec(row_A, Vec(row_B, 0.S))
   //  val S8DP1s = Vec(Seq.fill(row_A)(Seq.fill(row_B)(Module(new S8DP1).io)))
 
   val s8DP1s_1 = Vec(Seq.fill(row_B)(Module(new S8DP1).io))
   val s8DP1s_2 = Vec(Seq.fill(row_B)(Module(new S8DP1).io))
   val s8DP1s_3 = Vec(Seq.fill(row_B)(Module(new S8DP1).io))
   val s8DP1s_4 = Vec(Seq.fill(row_B)(Module(new S8DP1).io))
-
   val S8DP1s = Vector(s8DP1s_1, s8DP1s_2, s8DP1s_3, s8DP1s_4)
 
-  //  val S8DP1s = Vec(
-
-  //  val S8DP1s = Seq(1,2,3,4)
-
-
   //Define Regs (FFs)
+  /*
+      FFB1    FFB2
+  FFA1    FF00
+      FF01    FF10
+  FFA2    FF11
+   */
   //ffax left ffbx upper
   val ffb1 = Module(new FF4)
+  val ff01 = Module(new FF4)
   val ffb2 = Module(new FF4)
+  val ff10 = Module(new FF4)
+
+  ff01.io.in_tag := ffb1.io.out_tag
+  ff01.io.in_data := ffb1.io.out_data
+  ff10.io.in_tag := ffb2.io.out_tag
+  ff10.io.in_data := ffb2.io.out_data
 
   val ffa1 = Module(new FF8)
   val ff00 = Module(new FF8)
-
-  val ff01 = Module(new FF4)
-  val ff10 = Module(new FF4)
-
   val ffa2 = Module(new FF8)
   val ff11 = Module(new FF8)
 
-  //comm
+  ff00.io.in_data := ffa1.io.out_data
+  ff11.io.in_data := ffa2.io.out_data
 
+  for (i <- 0 until 4) {
+    for (j <- 0 until 2) {
+      S8DP1s(j)(i).in_B := ffb1.io.out_data(i)
+      S8DP1s(j)(i).in_A := ffa1.io.out_data(j)
+      S8DP1s(j)(i + 4).in_B := ffb2.io.out_data(i)
+      S8DP1s(j)(i + 4).in_A := ff00.io.out_data(j)
+      S8DP1s(j + 2)(i).in_B := ff01.io.out_data(i)
+      S8DP1s(j + 2)(i).in_A := ffa2.io.out_data(j)
+      S8DP1s(j + 2)(i + 4).in_B := ff10.io.out_data(i)
+      S8DP1s(j + 2)(j + 4).in_A := ff11.io.out_data(j)
+    }
+  }
 
-  //  val zero = RegInit()
   val zero = RegInit(Vec(Seq.fill(row_B)(Vec(Seq.fill(col_B)(false.B)))))
 
-  /*
-  Now we come to the loops
-   */
+  // Now we come to the loops
 
-  //Loop1
-  //Data fetch
-  for (i <- 0 until 8) {
-    //input A (left)
-    for (j <- 0 until 2) {
-      ffa1.io.in_data(j)(i) := io.in_A(j)(i)
-      ff00.io.in_data(j)(i) := io.in_A(j)(i)
+  val ini :: loop1 :: loop2 :: loop3 :: loop4 :: finish :: Nil = Enum(6)
+  val stateReg = RegInit(ini)
 
-    }
-
-    //input and process B (upper)
-    for (j <- 0 until 4) {
-      ffb1.io.in_data(j)(i) := io.in_B(j)(i)
-      ff01.io.in_data(j)(i) := io.in_B(j)(i)
-
-    }
-  }
-
-  //Data tag for B
-  for (i <- 0 until 4) {
-    taggers(i).in_data := ffb1.io.out_data(i)
-    ffb1.io.in_tag(i) := taggers(i).out_tag
-    ff01.io.in_tag(i) := taggers(i).out_tag
-  }
-
-  //Begin to compute
-  /*
-  + -
-  - -
-  left upper
-  */
-  for (k <- 0 until 8) {
-    if (ffb1.io.out_tag != zero) {
-      for (i <- 0 until 4) { //column
-        muxs(i).int_in := ffb1.io.out_data(i)
-        muxs(i).tag := ffb1.io.out_tag(i)
-        for (j <- 0 until 2) { //row
-          S8DP1s(j)(i).int_in_A := ffa1.io.out_data(j)
-          S8DP1s(j)(i).int_in_B := muxs(i).choice
-          S8DP1s(j)(i).tag := ffb1.io.out_tag(i)
-
-          ffb1.io.in_tag(i) := S8DP1s(j)(i).out_tag
+  switch(stateReg) {
+    is(loop1) {
+      //Loop1
+      //Data fetch
+      for (i <- 0 until 8) {
+        //input A (left)
+        for (j <- 0 until 2) {
+          ffa1.io.in_data(j)(i) := io.in_A(j)(i)
         }
-      }
-    }
-  }
-
-
-  //Loop2
-  //Data fetch
-  for (i <- 0 until 8) {
-    //input A
-    /*
-    - -
-    + -
-    */
-    for (j <- 0 until 2) {
-      ffa2.io.in_data(j)(i) := io.in_A(j + 2)(i)
-      ff11.io.in_data(j)(i) := io.in_A(j + 2)(i)
-    }
-
-    //input and process B
-    /*
-    - +
-    - -
-    */
-    for (j <- 0 until 4) {
-      ffb2.io.in_data(j)(i) := io.in_B(j + 4)(i)
-      ff10.io.in_data(j)(i) := io.in_B(j + 4)(i)
-    }
-  }
-
-  //Data tag for B
-  for (i <- 0 until 4) {
-    taggers(i).in_data := ffb1.io.out_data(i)
-    ffb2.io.in_tag(i) := taggers(i).out_tag
-    ff10.io.in_tag(i) := taggers(i).out_tag
-  }
-
-  //Begin to compute
-  /*
-  - 2
-  3 4
-  */
-  for (k <- 0 until 8) {
-    if (ffb1.io.out_tag != zero) {
-      //2
-      for (i <- 0 until 4) { //column
-        muxs(i).int_in := ffb2.io.out_data(i)
-        muxs(i).tag := ffb2.io.out_tag(i)
-        for (j <- 0 until 2) { //row
-          S8DP1s(j)(i + 4).int_in_A := ff00.io.out_data(j)
-          S8DP1s(j)(i + 4).int_in_B := muxs(i).choice
-          S8DP1s(j)(i + 4).tag := ffb2.io.out_tag(i)
-
-          ffb2.io.in_tag(i) := S8DP1s(j)(i + 4).out_tag
+        //input and process B (upper)
+        for (j <- 0 until 4) {
+          ffb1.io.in_data(j)(i) := io.in_B(j)(i)
         }
       }
 
-      //3
-      for (i <- 0 until 4) { //column
-        muxs(i).int_in := ff01.io.out_data(i)
-        muxs(i).tag := ff01.io.out_tag(i)
-        for (j <- 0 until 2) { //row
-          S8DP1s(j + 2)(i).int_in_A := ff01.io.out_data(j)
-          S8DP1s(j + 2)(i).int_in_B := muxs(i).choice
-          S8DP1s(j + 2)(i).tag := ff01.io.out_tag(i)
+      //Data tag for B
+      for (i <- 0 until 4) {
+        taggers(i).in_data := ffb1.io.out_data(i)
+        ffb1.io.in_tag(i) := taggers(i).out_tag
+      }
 
-          ff01.io.in_tag(i) := S8DP1s(j + 2)(i).out_tag
+      //Begin to compute
+      /*
+      + -
+      - -
+      left upper
+      */
+
+      when(S8DP1s(0)(0).out_calculate === true.B) {
+        for (i <- 0 until 4) {
+          for (j <- 0 until 2) {
+            S8DP1s(j)(i).in_calculate := false.B
+          }
+        }
+        stateReg := loop2
+      }.otherwise {
+        for (i <- 0 until 4) {
+          for (j <- 0 until 2) {
+            S8DP1s(j)(i).in_calculate := true.B
+          }
         }
       }
 
-      //4
-      for (i <- 0 until 4) { //column
-        muxs(i).int_in := ff10.io.out_data(i)
-        muxs(i).tag := ff10.io.out_tag(i)
-        for (j <- 0 until 2) { //row
-          S8DP1s(j + 2)(i + 4).int_in_A := ff11.io.out_data(j)
-          S8DP1s(j + 2)(i + 4).int_in_B := muxs(i).choice
-          S8DP1s(j + 2)(i + 4).tag := ff10.io.out_tag(i)
 
-          ffb1.io.in_tag(i) := S8DP1s(j)(i + 4).out_tag
+    }
+    is(loop2) {
+      //Loop2
+      //Data fetch
+      for (i <- 0 until 8) {
+        //input A (left)
+        for (j <- 0 until 2) {
+          ffa2.io.in_data(j)(i) := io.in_A(j)(i + 8)
         }
-      }
-    }
-  }
-
-
-  //Loop3
-  //Data fetch
-  for (i <- 0 until 8) {
-    //input A
-    /*
-    - +
-    - -
-    */
-    for (j <- 0 until 2) {
-      ffa1.io.in_data(j)(i) := io.in_A(j)(i + 8)
-      ff00.io.in_data(j)(i) := io.in_A(j)(i + 8)
-    }
-
-    //input and process B
-    /*
-    - -
-    + -
-    */
-    for (j <- 0 until 4) {
-      ffb1.io.in_data(j)(i) := io.in_B(j)(i + 8)
-      ff01.io.in_data(j)(i) := io.in_B(j)(i + 8)
-    }
-  }
-
-  //Data tag for B
-  for (i <- 0 until 4) {
-    taggers(i).in_data := ffb1.io.out_data(i)
-    ffb1.io.in_tag(i) := taggers(i).out_tag
-    ff01.io.in_tag(i) := taggers(i).out_tag
-  }
-
-  //Begin to compute
-  /*
-  + -
-  - -
-  */
-  for (k <- 0 until 8) {
-    if (ffb1.io.out_tag != zero) {
-      for (i <- 0 until 4) { //column
-        muxs(i).int_in := ffb1.io.out_data(i)
-        muxs(i).tag := ffb1.io.out_tag(i)
-        for (j <- 0 until 2) { //row
-          S8DP1s(j)(i).int_in_A := ffa1.io.out_data(j)
-          S8DP1s(j)(i).int_in_B := muxs(i).choice
-          S8DP1s(j)(i).tag := ffb1.io.out_tag(i)
-
-          ffb1.io.in_tag(i) := S8DP1s(j)(i).out_tag
-        }
-      }
-    }
-  }
-
-  //Loop4
-  //Data fetch
-  for (i <- 0 until 8) {
-    //input A
-    /*
-    - -
-    - +
-    */
-    for (j <- 0 until 2) {
-      ffa2.io.in_data(j)(i) := io.in_A(j + 2)(i + 8)
-      ff11.io.in_data(j)(i) := io.in_A(j + 2)(i + 8)
-    }
-
-    //input and process B
-    /*
-    - -
-    - +
-    */
-    for (j <- 0 until 4) {
-      ffb2.io.in_data(j)(i) := io.in_B(j + 4)(i + 8)
-      ff10.io.in_data(j)(i) := io.in_B(j + 4)(i + 8)
-    }
-  }
-
-  //Data tag for B
-  for (i <- 0 until 4) {
-    taggers(i).in_data := ffb1.io.out_data(i)
-    ffb2.io.in_tag(i) := taggers(i).out_tag
-    ff10.io.in_tag(i) := taggers(i).out_tag
-  }
-
-  //Begin to compute
-  /*
-  - 2
-  3 4
-  */
-  for (k <- 0 until 8) {
-    if (ffb1.io.out_tag != zero) {
-      //2
-      for (i <- 0 until 4) { //column
-        muxs(i).int_in := ffb2.io.out_data(i)
-        muxs(i).tag := ffb2.io.out_tag(i)
-        for (j <- 0 until 2) { //row
-          S8DP1s(j)(i + 4).int_in_A := ff00.io.out_data(j)
-          S8DP1s(j)(i + 4).int_in_B := muxs(i).choice
-          S8DP1s(j)(i + 4).tag := ffb2.io.out_tag(i)
-
-          ffb2.io.in_tag(i) := S8DP1s(j)(i + 4).out_tag
+        //input and process B (upper)
+        for (j <- 0 until 4) {
+          ffb2.io.in_data(j)(i) := io.in_B(j)(i + 8)
         }
       }
 
-      //3
-      for (i <- 0 until 4) { //column
-        muxs(i).int_in := ff01.io.out_data(i)
-        muxs(i).tag := ff01.io.out_tag(i)
-        for (j <- 0 until 2) { //row
-          S8DP1s(j + 2)(i).int_in_A := ff01.io.out_data(j)
-          S8DP1s(j + 2)(i).int_in_B := muxs(i).choice
-          S8DP1s(j + 2)(i).tag := ff01.io.out_tag(i)
-
-          ff01.io.in_tag(i) := S8DP1s(j + 2)(i).out_tag
-        }
+      //Data tag for B
+      for (i <- 0 until 4) {
+        taggers(i).in_data := ffb2.io.out_data(i)
+        ffb2.io.in_tag(i) := taggers(i).out_tag
       }
 
-      //4
-      for (i <- 0 until 4) { //column
-        muxs(i).int_in := ff10.io.out_data(i)
-        muxs(i).tag := ff10.io.out_tag(i)
-        for (j <- 0 until 2) { //row
-          S8DP1s(j + 2)(i + 4).int_in_A := ff11.io.out_data(j)
-          S8DP1s(j + 2)(i + 4).int_in_B := muxs(i).choice
-          S8DP1s(j + 2)(i + 4).tag := ff10.io.out_tag(i)
+      //Begin to compute
+      /*
+      + -
+      - -
+      left upper
+      */
 
-          ffb1.io.in_tag(i) := S8DP1s(j)(i + 4).out_tag
+      when(S8DP1s(0)(0).out_calculate === true.B) {
+        for (i <- 0 until 4) {
+          for (j <- 0 until 2) {
+            S8DP1s(j + 2)(i + 4).in_calculate := false.B
+            S8DP1s(j + 2)(i).in_calculate := false.B
+            S8DP1s(j)(i + 4).in_calculate := false.B
+          }
+        }
+        stateReg := loop2
+      }.otherwise {
+        for (i <- 0 until 4) {
+          for (j <- 0 until 2) {
+            S8DP1s(j + 2)(i).in_calculate := true.B
+            S8DP1s(j + 2)(i + 4).in_calculate := true.B
+            S8DP1s(j)(i + 4).in_calculate := true.B
+          }
         }
       }
     }
-  }
+    is(loop3) {
+      //Loop3
+      //Data fetch
+      for (i <- 0 until 8) {
+        //input A (left)
+        for (j <- 0 until 2) {
+          ffa1.io.in_data(j)(i) := io.in_A(j + 2)(i)
+        }
+        //input and process B (upper)
+        for (j <- 0 until 4) {
+          ffb1.io.in_data(j)(i) := io.in_B(j + 4)(i)
+        }
+      }
 
-  //output
-  val out_result = RegInit(Vec(Seq.fill(row_A)(VecInit(Seq.fill(row_B)(0.S(32.W))))))
+      //Data tag for B
+      for (i <- 0 until 4) {
+        taggers(i).in_data := ffb1.io.out_data(i)
+        ffb1.io.in_tag(i) := taggers(i).out_tag
+      }
 
-  for (i <- 0 until 8) {
-    for (j <- 0 until 4) {
-      out_result(j)(i) := S8DP1s(j)(i).result
+      //Begin to compute
+      /*
+      + -
+      - -
+      left upper
+      */
+
+      when(S8DP1s(0)(0).out_calculate === true.B) {
+        for (i <- 0 until 4) {
+          for (j <- 0 until 2) {
+            S8DP1s(j)(i).in_calculate := false.B
+          }
+        }
+        stateReg := loop2
+      }.otherwise {
+        for (i <- 0 until 4) {
+          for (j <- 0 until 2) {
+            S8DP1s(j)(i).in_calculate := true.B
+          }
+        }
+      }
+    }
+    is(loop4) {
+      //Loop4
+      //Data fetch
+      for (i <- 0 until 8) {
+        //input A (left)
+        for (j <- 0 until 2) {
+          ffa2.io.in_data(j)(i) := io.in_A(j + 2)(i + 8)
+        }
+        //input and process B (upper)
+        for (j <- 0 until 4) {
+          ffb2.io.in_data(j)(i) := io.in_B(j + 4)(i + 8)
+        }
+      }
+
+      //Data tag for B
+      for (i <- 0 until 4) {
+        taggers(i).in_data := ffb2.io.out_data(i)
+        ffb2.io.in_tag(i) := taggers(i).out_tag
+      }
+
+      //Begin to compute
+      /*
+      + -
+      - -
+      left upper
+      */
+
+      when(S8DP1s(0)(0).out_calculate === true.B) {
+        for (i <- 0 until 4) {
+          for (j <- 0 until 2) {
+            S8DP1s(j + 2)(i + 4).in_calculate := false.B
+            S8DP1s(j + 2)(i).in_calculate := false.B
+            S8DP1s(j)(i + 4).in_calculate := false.B
+          }
+        }
+        stateReg := finish
+      }.otherwise {
+        for (i <- 0 until 4) {
+          for (j <- 0 until 2) {
+            S8DP1s(j + 2)(i).in_calculate := true.B
+            S8DP1s(j + 2)(i + 4).in_calculate := true.B
+            S8DP1s(j)(i + 4).in_calculate := true.B
+          }
+        }
+      }
+    }
+    is(finish) {
+      val out_result = RegInit(Vec(Seq.fill(row_A)(VecInit(Seq.fill(row_B)(0.S(32.W))))))
+
+      for (i <- 0 until 8) {
+        for (j <- 0 until 4) {
+          out_result(j)(i) := S8DP1s(j)(i).result
+        }
+      }
+
+      io.out_C := out_result
     }
   }
 
-  io.out_C := out_result
 
 }
 
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    println("STA-VDBB main function")
-    chisel3.Driver.execute(args, () => new STA_VDBB())
-  }
-}
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    println("STA-VDBB main function")
+//    chisel3.Driver.execute(args, () => new STA_VDBB())
+//  }
+//}
 
 //run --target-dir generated --compiler verilog

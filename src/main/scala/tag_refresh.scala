@@ -1,6 +1,5 @@
 import chisel3._
 import chisel3.util._
-import chisel3.iotesters.{ChiselFlatSpec, Driver, PeekPokeTester}
 
 /*
 Description: Set the first 1 tag to 0
@@ -19,22 +18,30 @@ Date: 23/11/2020
 */
 
 
-class tag_refine(val tag_width: Int = 8) extends Module{
+class tag_refresh(val tag_width: Int = 8) extends Module {
   val io = IO(new Bundle {
     val tag_in = Input(Vec(tag_width, Bool()))
     val tag_out = Output(Vec(tag_width, Bool()))
   })
+  io.tag_out := Vec(Seq.fill(tag_width)(false.B))
+
+  val not_found :: found :: Nil = Enum(2)
+  val stateReg = RegInit(not_found)
 
   val tag = RegInit(Vec(Seq.fill(tag_width)(false.B)))
-  val find = RegInit(false.B)
-
-  tag := io.tag_in
 
   for (i <- 0 until tag_width) {
-    when(find === false.B) {
-      when(tag(i) === true.B) {
-        tag(i) := false.B
-        find := true.B
+    switch(stateReg) {
+      is(not_found) {
+        when(io.tag_in(i)) {
+          tag(i) := false.B
+          stateReg := found
+        }.otherwise {
+          tag(i) := false.B
+        }
+      }
+      is(found) {
+        tag(i) := io.tag_in(i)
       }
     }
   }
