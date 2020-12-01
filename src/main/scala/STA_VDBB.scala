@@ -57,7 +57,6 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   //define signal
   var calculation_finish = false
   var calculation_start = false
-  var
 
 
   val taggers = Vec(Seq.fill(4)(Module(new tag).io))
