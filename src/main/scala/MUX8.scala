@@ -16,6 +16,9 @@ Outputs:
 Function:
   output the int represented by the first non-zero boolean and turn this TAG into 0
 
+Author: YUAN Tong
+Version: V2.0
+Date: 3/12/2020
  */
 
 /**

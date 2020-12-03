@@ -27,6 +27,10 @@ FFA2    FF11
 
 Outputs:
   out_C: matrices C, 4 rows 8 column (just like the structure)
+
+Author: YUAN Tong
+Version: V2.0
+Date: 3/12/2020
  */
 
 object BLOCK_SIZE_VDBB {
@@ -309,11 +313,11 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
 }
 
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    println("STA-VDBB main function")
-    chisel3.Driver.execute(args, () => new STA_VDBB())
-  }
-}
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    println("STA-VDBB main function")
+//    chisel3.Driver.execute(args, () => new STA_VDBB())
+//  }
+//}
 
 //run --target-dir generated --compiler verilog

@@ -24,8 +24,8 @@ Outputs:
 Function:
 
 Author: YUAN Tong
-Version: V0.1
-Date: 22/11/2020
+Version: V2.0
+Date: 3/12/2020
 */
 
 import chisel3._
