@@ -55,12 +55,27 @@ class TPU extends Module{
 
   val S8DP1_1 = Vec(Seq.fill(4)(Module(new S8DP1).io))
   val S8DP1_2 = Vec(Seq.fill(4)(Module(new S8DP1).io))
+  val reg_cal = RegInit(false.B)
+  for (i <- 0 until 4) {
+    S8DP1_1(i).in_calculate := false.B
+    S8DP1_2(i).in_calculate := false.B
+
+    S8DP1_1(i).in_A := reg_A(0)
+    S8DP1_1(i).in_B := reg_B(0)(i)
+    S8DP1_1(i).in_tag := reg_tag(0)(i)
+    S8DP1_1(i).in_calculate := reg_cal
+
+    S8DP1_2(i).in_A := reg_A(1)
+    S8DP1_2(i).in_B := reg_B(1)(i)
+    S8DP1_2(i).in_tag := reg_tag(1)(i)
+    S8DP1_2(i).in_calculate := reg_cal
+
+  }
 
   //connect output (default output)
   io.out_A := reg_A
   io.out_B := reg_B
   io.out_tag := reg_tag
-
   for (i <- 0 until 4) {
     io.out_result(0)(i) := S8DP1_1(i).result
     io.out_result(1)(i) := S8DP1_2(i).result
@@ -71,11 +86,12 @@ class TPU extends Module{
   val fetch :: cal :: stop :: Nil = Enum(3)
   val stateReg = RegInit(stop)
 
-
   //change state
   switch(stateReg) {
-    is(stop){  //only connect outputs
-
+    is(stop){  //stop
+      when (!io.in_cal && RegNext(io.in_cal)) {
+        stateReg := fetch
+      }
     }
     is(fetch){  //start fetch at the rising edge of in_cal
       //A
@@ -84,16 +100,21 @@ class TPU extends Module{
       reg_B := io.in_B
       reg_tag := io.in_tag
       //change state
-      if(reg_A != RegNext(reg_A)){
-        stateReg := cal
-      }
+      stateReg := cal
     }
     is(cal){ //connect inputs
+      //calculate
+        reg_cal := true.B
 
+      //change state
+      when(S8DP1_1(0).out_calculate && S8DP1_1(1).out_calculate && S8DP1_1(2).out_calculate && S8DP1_1(3).out_calculate &&
+        S8DP1_2(0).out_calculate && S8DP1_2(1).out_calculate && S8DP1_2(2).out_calculate && S8DP1_2(3).out_calculate
+      ) {
+        stateReg := stop
+        reg_cal := false.B
+      }
     }
-
   }
-
 }
 
 //object Main {
