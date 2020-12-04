@@ -40,39 +40,42 @@ class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
   })
 
   val tag = RegInit(Vec(Seq.fill(tag_width)(false.B)))
+  val index = RegInit(Vec(0.U, 1.U, 2.U, 3.U, 4.U, 5.U, 6.U, 7.U))
   val acc = RegInit(0.S(w.W))
   io.result := acc
   io.out_calculate := false.B //default value
 
-  val tag_change = Module(new tag_refresh)
-  tag_change.io.tag_in := tag
-
   //state
-  val cal :: stop :: Nil = Enum(2)
+  val cal :: refresh :: stop :: Nil = Enum(3)
   val stateReg = RegInit(stop)
 
   switch(stateReg) {
     is(cal) {
       acc := acc + PriorityMux(tag, io.in_A) * PriorityMux(tag, io.in_B)
-
       when (acc =/= RegNext(acc)) {
-        tag := tag_change.io.tag_out
-        when (!tag(0) && !tag(1) && !tag(2) && !tag(3) &&
-          !tag(4) && !tag(5) && !tag(6) && !tag(7)) {
-          stateReg := stop
-          io.out_calculate := true.B
-        }
+        stateReg := refresh
+      }
+    }
+    is(refresh){
+      tag(PriorityMux(tag, index)) := false.B
+      when (!tag(0) && !tag(1) && !tag(2) && !tag(3) &&
+        !tag(4) && !tag(5) && !tag(6) && !tag(7)) {
+        stateReg := stop
+        io.out_calculate := true.B
+      }.otherwise{
+        stateReg := cal
       }
     }
     is(stop) {
       //begin work
-      when (!io.in_calculate && RegNext(io.in_calculate)){ //pos-edge
+//      when (!io.in_calculate && RegNext(io.in_calculate))
+      when (io.in_calculate)
+      { //pos-edge
         stateReg := cal
         tag := io.in_tag
         io.out_calculate := false.B
       }
     }
-
   }
 
 
