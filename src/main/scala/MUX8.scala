@@ -36,35 +36,30 @@ Date: 3/12/2020
 
 class MUX8(val tag_width: Int = 8) extends Module {
   val io = IO(new Bundle {
-    val int_in = Input(Vec(tag_width, SInt(32.W)))
     val in_tag = Input(Vec(tag_width, Bool()))
-    val choice = Output(SInt(32.W))
+    val choice = Output(UInt(32.W))
   })
-  io.choice := 0.S
+  io.choice := 0.U
 
-  val not_found :: found :: Nil = Enum(2)
-  val stateReg = RegInit(not_found)
-
-  val tag = RegInit(Vec(Seq.fill(tag_width)(false.B)))
-
-  for (i <- 0 until tag_width) {
-    switch(stateReg) {
-      is(not_found) {
-        when(io.in_tag(i)) {
-          tag(i) := true.B
-          stateReg := found
-        }.
-          otherwise {
-            tag(i) := false.B
-          }
-      }
-      is(found) {
-        tag(i) := false.B
-      }
-    }
+  when(io.in_tag(0)){
+    io.choice := 0.U
+  }.elsewhen(io.in_tag(1)){
+    io.choice := 1.U
+  }.elsewhen(io.in_tag(2)){
+    io.choice := 2.U
+  }.elsewhen(io.in_tag(3)){
+    io.choice := 3.U
+  }.elsewhen(io.in_tag(4)){
+    io.choice := 4.U
+  }.elsewhen(io.in_tag(5)){
+    io.choice := 5.U
+  }.elsewhen(io.in_tag(6)){
+    io.choice := 6.U
+  }.elsewhen(io.in_tag(7)){
+    io.choice := 7.U
+  }.otherwise{
+    io.choice := 0.U
   }
-
-  io.choice := chisel3.util.Mux1H(tag, io.int_in)
 
 }
 

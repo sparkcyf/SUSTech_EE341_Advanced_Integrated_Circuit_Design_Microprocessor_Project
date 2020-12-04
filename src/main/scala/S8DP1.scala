@@ -21,7 +21,7 @@ signal:
   out: cal_finished: set to 1 when calculate finished, set to 0 when calculation signal is 1
 
 Author: YUAN Tong
-Version: V2.0
+Version: V3.0 (Test passed)
 Date: 3/12/2020
  */
 
@@ -43,37 +43,46 @@ class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
   val index = RegInit(Vec(0.U, 1.U, 2.U, 3.U, 4.U, 5.U, 6.U, 7.U))
   val acc = RegInit(0.S(w.W))
   io.result := acc
-  io.out_calculate := false.B //default value
+  val cal = RegInit(false.B)
+  io.out_calculate := cal //default value
+
+  val mux = Module(new MUX8)
+  mux.io.in_tag := tag
 
   //state
-  val cal :: refresh :: stop :: Nil = Enum(3)
+  val calculate :: refresh :: judge :: stop :: Nil = Enum(4)
   val stateReg = RegInit(stop)
 
+  val acc_temp = RegInit(0.S(w.W))
+
   switch(stateReg) {
-    is(cal) {
-      acc := acc + PriorityMux(tag, io.in_A) * PriorityMux(tag, io.in_B)
-      when (acc =/= RegNext(acc)) {
-        stateReg := refresh
-      }
+    is(calculate) {
+      acc_temp := acc + io.in_A(mux.io.choice) * io.in_B(mux.io.choice)
+      stateReg := refresh
     }
     is(refresh){
-      tag(PriorityMux(tag, index)) := false.B
-      when (!tag(0) && !tag(1) && !tag(2) && !tag(3) &&
-        !tag(4) && !tag(5) && !tag(6) && !tag(7)) {
+      acc := acc_temp
+      tag(mux.io.choice) := false.B
+      stateReg := judge
+    }
+    is(judge){
+      when (((!tag(0) && !tag(1)) && (!tag(2) && !tag(3))) &&
+        ((!tag(4) && !tag(5)) && (!tag(6) && !tag(7)))) {
         stateReg := stop
-        io.out_calculate := true.B
+        cal := true.B
       }.otherwise{
-        stateReg := cal
+        stateReg := calculate
       }
     }
     is(stop) {
+      tag := io.in_tag
       //begin work
 //      when (!io.in_calculate && RegNext(io.in_calculate))
-      when (io.in_calculate)
+      when (io.in_calculate && (tag(0) || tag(1) || tag(2) || tag(3) ||
+        tag(4) || tag(5) || tag(6) || tag(7)))
       { //pos-edge
-        stateReg := cal
-        tag := io.in_tag
-        io.out_calculate := false.B
+        stateReg := calculate
+        cal := false.B
       }
     }
   }
