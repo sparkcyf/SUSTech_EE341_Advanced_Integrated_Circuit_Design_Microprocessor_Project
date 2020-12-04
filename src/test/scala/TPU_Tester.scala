@@ -33,7 +33,7 @@ class TPU_Tester(c: TPU) extends PeekPokeTester(c){
   val tag = Array(
     Array(false, true, false, true, false, false, true, false),
     Array(false, false, true, false, false, false, false, false),
-    Array(false, true, false, false, false, false, false, false),
+    Array(false, true, false, false, true, false, false, false),
     Array(false,  false, false, true, false, false, true, false)
   )
   for (i <- 0 until 4) {
@@ -80,23 +80,23 @@ class TPU_Tester(c: TPU) extends PeekPokeTester(c){
 
 
   step(30)
-//  println("Reg A")
-//  for (i <- 0 until 2) {
-//    print("| ")
-//    for (j <- 0 until 8) {
-//      print(" " + peek(c.io.out_A(i)(j)) + " ")
-//    }
-//    println("| ")
-//  }
-//
-//  println("Reg B")
-//  for (i <- 0 until 4) {
-//    print("| ")
-//    for (j <- 0 until 8) {
-//      print(" " + peek(c.io.out_B(i)(j)) + " ")
-//    }
-//    println("| ")
-//  }
+  println("Reg A")
+  for (i <- 0 until 2) {
+    print("| ")
+    for (j <- 0 until 8) {
+      print(" " + peek(c.io.out_A(i)(j)) + " ")
+    }
+    println("| ")
+  }
+
+  println("Reg B")
+  for (i <- 0 until 4) {
+    print("| ")
+    for (j <- 0 until 8) {
+      print(" " + peek(c.io.out_B(i)(j)) + " ")
+    }
+    println("| ")
+  }
 
   println("Actually:")
   for (i <- 0 until 2){
