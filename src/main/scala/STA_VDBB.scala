@@ -55,8 +55,12 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
 
   /*
    registers for blocks
+   A:
    1 2
    3 4
+   B:
+   1 3
+   2 4
    */
   val reg_A_1 = RegInit(Vec(Seq.fill(2)(Vec(Seq.fill(8)(1.S(w.W))))))
   val reg_A_2 = RegInit(Vec(Seq.fill(2)(Vec(Seq.fill(8)(1.S(w.W))))))
@@ -68,26 +72,17 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   val reg_B_3 = RegInit(Vec(Seq.fill(4)(Vec(Seq.fill(8)(1.S(w.W))))))
   val reg_B_4 = RegInit(Vec(Seq.fill(4)(Vec(Seq.fill(8)(1.S(w.W))))))
 
-
-
-  val tagger = Vec(Seq.fill(2)(Module(new tagger_4).io))
-  tagger(0).input := reg_B_1
-  tagger(1).input := reg_B_2
-
   val TPUs = Vec(Seq.fill(4)(Module(new TPU).io))
   TPUs(0).in_A := reg_A_1
   TPUs(0).in_B := reg_B_1
-  TPUs(0).in_tag := tagger(0).output
   TPUs(2).in_A := reg_A_2
   TPUs(1).in_B := reg_B_2
-  TPUs(1).in_tag := tagger(1).output
 
   TPUs(1).in_A := TPUs(0).out_A
   TPUs(3).in_A := TPUs(2).out_A
+
   TPUs(2).in_B := TPUs(0).out_B
   TPUs(3).in_B := TPUs(1).out_B
-  TPUs(2).in_tag := TPUs(0).out_tag
-  TPUs(3).in_tag := TPUs(1).out_tag
 
   val cal_state = RegInit(Vec(Seq.fill(3)(false.B)))
   cal_state(0) := TPUs(0).out_cal
@@ -95,8 +90,6 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   cal_state(2) := TPUs(3).out_cal
   io.out_cal := cal_state(0) && cal_state(1) && cal_state(2)
 
-//  val result = RegInit(Vec(Seq.fill(4)(Vec(Seq.fill(8)(1.S(w.W))))))
-//  io.out_C := result
   for (i <- 0 until 2){
     for (j <- 0 until 4) {
       io.out_C(i)(j) := TPUs(0).out_result(i)(j)
@@ -112,10 +105,8 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   TPUs(2).in_cal := cal_control(1)
   TPUs(3).in_cal := cal_control(2)
 
-  val prepare :: change :: stop :: loop1 :: loop2 :: loop3 :: loop4 :: loop5 :: Nil = Enum(8)
-  val fetch :: cal :: Nil = Enum(2)
+  val prepare :: change :: load :: restart :: stop :: loop1 :: loop2 :: loop3 :: loop4 :: loop5 :: Nil = Enum(10)
   val stateReg = RegInit(stop)
-  val loop_reg = RegInit(fetch)
 
   switch(stateReg) {
     is(stop){
@@ -127,116 +118,75 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
       for (i <- 0 until 2){
         for (j <- 0 until 8) {
           reg_A_1(i)(j) := io.in_A(i)(j)
-          reg_A_2(i)(j) := io.in_A(i)(j+8)
-          reg_A_3(i)(j) := io.in_A(i+2)(j)
+          reg_A_2(i)(j) := io.in_A(i+2)(j)
+          reg_A_3(i)(j) := io.in_A(i)(j+8)
           reg_A_4(i)(j) := io.in_A(i+2)(j+8)
         }
       }
       for (i <- 0 until 4){
         for (j <- 0 until 8) {
           reg_B_1(i)(j) := io.in_B(i)(j)
-          reg_B_2(i)(j) := io.in_B(i)(j+8)
-          reg_B_3(i)(j) := io.in_B(i+4)(j)
+          reg_B_2(i)(j) := io.in_B(i+4)(j)
+          reg_B_3(i)(j) := io.in_B(i)(j+8)
           reg_B_4(i)(j) := io.in_B(i+4)(j+8)
         }
       }
-      stateReg := loop1
+      stateReg := RegNext(loop1)
+      cal_control(0) := true.B
     }
     is(loop1) {
-      switch(loop_reg) {
-        is(fetch) {
-          loop_reg := RegNext(cal)
-          cal_control(0) := true.B
-        }
-        is(cal) {
-          when(cal_state(0)) {
-            cal_control(0) := false.B
-            stateReg := loop2
-            loop_reg := fetch
-          }
-        }
+      cal_control(0) := false.B
+      when(cal_state(0)) {
+        cal_control(1) := true.B
+        stateReg := loop2
       }
     }
     is(loop2) {
-      switch(loop_reg) {
-        is(fetch) {
-          loop_reg := cal
-          cal_control(1) := true.B
-        }
-        is(cal) {
-          when(cal_state(1)) {
-            cal_control(1) := false.B
-            stateReg := change
-            loop_reg := fetch
-          }
-        }
+      cal_control(1) := false.B
+      when(cal_state(1)) {
+        stateReg := change
       }
     }
     is(change){
-      switch(loop_reg){
-        is(fetch){
-          tagger(0).input := reg_B_3
-          tagger(1).input := reg_B_4
-          loop_reg := cal
-        }
-        is(cal){
-          TPUs(0).in_A := reg_A_3
-          TPUs(0).in_B := reg_B_3
-          TPUs(0).in_tag := tagger(0).output
-          TPUs(2).in_A := reg_A_4
-          TPUs(1).in_B := reg_B_4
-          TPUs(1).in_tag := tagger(1).output
-          stateReg := loop3
-          loop_reg := fetch
-        }
-      }
+//      TPUs(0).in_B := reg_B_3
+//      TPUs(0).in_A := reg_A_3
+//      TPUs(1).in_B := reg_B_4
+//      TPUs(2).in_A := reg_A_4
+      reg_B_1 := reg_B_3
+      reg_A_1 := reg_A_3
+      reg_B_2 := reg_B_4
+      reg_A_2 := reg_A_4
+      stateReg := RegNext(load)
+    }
+    is(load){
+      stateReg := restart
+    }
+    is(restart){
+      cal_control(0) := true.B
+      cal_control(2) := true.B
+      stateReg := loop3
     }
     is(loop3){
-      switch(loop_reg) {
-        is(fetch) {
-          loop_reg := RegNext(cal)
-          cal_control(0) := true.B
-          cal_control(2) := true.B
-        }
-        is(cal) {
-          when(cal_state(0) && cal_state(2)) {
-            cal_control(0) := false.B
-            cal_control(2) := false.B
-            stateReg := loop4
-            loop_reg := fetch
-          }
-        }
+      cal_control(0) := false.B
+      cal_control(2) := false.B
+      when(cal_state(0) && cal_state(2)) {
+        stateReg := loop4
+        cal_control(1) := true.B
       }
+
     }
     is(loop4){
-      switch(loop_reg) {
-        is(fetch) {
-          loop_reg := cal
-          cal_control(1) := true.B
-        }
-        is(cal) {
-          when(cal_state(1)) {
-            cal_control(1) := false.B
-            stateReg := loop5
-            loop_reg := fetch
-          }
-        }
+      when(cal_state(1)) {
+        cal_control(1) := false.B
+        stateReg := loop5
+        cal_control(2) := true.B
       }
     }
-
     is(loop5){
-      switch(loop_reg) {
-        is(fetch) {
-          loop_reg := RegNext(cal)
-          cal_control(2) := true.B
-        }
-        is(cal) {
-          when(cal_state(2)) {
-            cal_control(2) := false.B
-            stateReg := stop
-            loop_reg := fetch
-          }
-        }
+      when(cal_state(2)) {
+        cal_control(2) := false.B
+        stateReg := stop
+
       }
   }
 

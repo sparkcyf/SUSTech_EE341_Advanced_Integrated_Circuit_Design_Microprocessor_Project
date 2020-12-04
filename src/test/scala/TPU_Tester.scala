@@ -31,27 +31,51 @@ class TPU_Tester(c: TPU) extends PeekPokeTester(c){
 
   println("matrices B: ")
   val tag = Array(
-    Array(false, true, false, true, false, false, true, false),
-    Array(false, false, true, false, false, false, false, false),
-    Array(false, true, false, false, true, false, false, false),
-    Array(false,  false, false, true, false, false, true, false)
+    Array(true, false, false, false, false, false, false, false),
+    Array(true, false, false, false, false, false, false, false),
+    Array(true, false, false, false, false, false, false, false),
+    Array(true, false, false, false, false, false, false, false)
   )
   for (i <- 0 until 4) {
     print("| ")
     for (j <- 0 until 8) {
       if(tag(i)(j)){
         poke(c.io.in_B(i)(j), (j+1).S)
-        poke(c.io.in_tag(i)(j), true.B)
         print(" " + (j+1).toString + " ")
       }
       else{
         poke(c.io.in_B(i)(j), 0.S)
-        poke(c.io.in_tag(i)(j), false.B)
         print(" " + 0.toString + " ")
       }
     }
     println("| ")
   }
+
+  poke(c.io.in_cal, false.B)
+  step(1)
+  poke(c.io.in_cal, true.B)
+  step(1)
+  poke(c.io.in_cal, false.B)
+  step(30)
+
+  println("Reg A")
+  for (i <- 0 until 2) {
+    print("| ")
+    for (j <- 0 until 8) {
+      print(" " + peek(c.io.out_A(i)(j)) + " ")
+    }
+    println("| ")
+  }
+
+  println("Reg B")
+  for (i <- 0 until 4) {
+    print("| ")
+    for (j <- 0 until 8) {
+      print(" " + peek(c.io.out_B(i)(j)) + " ")
+    }
+    println("| ")
+  }
+
 
   println("Expected:")
   val result_exp = Array(Array(0, 0, 0, 0), Array(0, 0, 0, 0))
@@ -71,33 +95,6 @@ class TPU_Tester(c: TPU) extends PeekPokeTester(c){
     println("| ")
   }
 
-
-  poke(c.io.in_cal, false.B)
-  step(1)
-  poke(c.io.in_cal, true.B)
-  step(1)
-  poke(c.io.in_cal, false.B)
-
-
-  step(30)
-  println("Reg A")
-  for (i <- 0 until 2) {
-    print("| ")
-    for (j <- 0 until 8) {
-      print(" " + peek(c.io.out_A(i)(j)) + " ")
-    }
-    println("| ")
-  }
-
-  println("Reg B")
-  for (i <- 0 until 4) {
-    print("| ")
-    for (j <- 0 until 8) {
-      print(" " + peek(c.io.out_B(i)(j)) + " ")
-    }
-    println("| ")
-  }
-
   println("Actually:")
   for (i <- 0 until 2){
     print("| ")
@@ -107,6 +104,26 @@ class TPU_Tester(c: TPU) extends PeekPokeTester(c){
     println(" |")
   }
 
+  for (i <- 0 until 2) {
+    for (j <- 0 until 8) {
+      poke(c.io.in_A(i)(j), 1.S)
+    }
+  }
+  for (i <- 0 until 4) {
+
+    for (j <- 0 until 8) {
+      if(tag(i)(j)){
+        poke(c.io.in_B(i)(j), (j+2).S)
+      }
+      else{
+        poke(c.io.in_B(i)(j), 0.S)
+      }
+    }
+  }
+
+
+
+
   step(1)
   poke(c.io.in_cal, false.B)
   step(1)
@@ -114,8 +131,25 @@ class TPU_Tester(c: TPU) extends PeekPokeTester(c){
   step(1)
   poke(c.io.in_cal, false.B)
 
-  step(30)
+  step(60)
   println("The second time:")
+
+//  println("Reg A")
+//  for (i <- 0 until 2) {
+//    print("| ")
+//    for (j <- 0 until 8) {
+//      print(" " + peek(c.io.out_A(i)(j)) + " ")
+//    }
+//    println("| ")
+//  }
+//  println("Reg B")
+//  for (i <- 0 until 4) {
+//    print("| ")
+//    for (j <- 0 until 8) {
+//      print(" " + peek(c.io.out_B(i)(j)) + " ")
+//    }
+//    println("| ")
+//  }
   println("Reg A")
   for (i <- 0 until 2) {
     print("| ")
@@ -124,6 +158,7 @@ class TPU_Tester(c: TPU) extends PeekPokeTester(c){
     }
     println("| ")
   }
+
   println("Reg B")
   for (i <- 0 until 4) {
     print("| ")
@@ -132,13 +167,22 @@ class TPU_Tester(c: TPU) extends PeekPokeTester(c){
     }
     println("| ")
   }
-  println("Expected")
-  for (i <- 0 until 2){
+
+  println("Expected:")
+  for (i <- 0 until 2) {
     print("| ")
     for(j <- 0 until 4) {
-      print(" " + result_exp(i)(j)*2 + " ")
+      for(k <- 0 until 8) {
+        if(tag(j)(k)){
+          result_exp(i)(j) += k+2
+        }
+        else{
+          result_exp(i)(j) += 0
+        }
+      }
+      print(" " + result_exp(i)(j).toString + " ")
     }
-    println(" |")
+    println("| ")
   }
   println("Actually")
   for (i <- 0 until 2){
