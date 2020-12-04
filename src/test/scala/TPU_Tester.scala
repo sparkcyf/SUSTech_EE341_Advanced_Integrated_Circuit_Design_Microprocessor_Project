@@ -106,6 +106,48 @@ class TPU_Tester(c: TPU) extends PeekPokeTester(c){
     }
     println(" |")
   }
+
+  step(1)
+  poke(c.io.in_cal, false.B)
+  step(1)
+  poke(c.io.in_cal, true.B)
+  step(1)
+  poke(c.io.in_cal, false.B)
+
+  step(30)
+  println("The second time:")
+  println("Reg A")
+  for (i <- 0 until 2) {
+    print("| ")
+    for (j <- 0 until 8) {
+      print(" " + peek(c.io.out_A(i)(j)) + " ")
+    }
+    println("| ")
+  }
+  println("Reg B")
+  for (i <- 0 until 4) {
+    print("| ")
+    for (j <- 0 until 8) {
+      print(" " + peek(c.io.out_B(i)(j)) + " ")
+    }
+    println("| ")
+  }
+  println("Expected")
+  for (i <- 0 until 2){
+    print("| ")
+    for(j <- 0 until 4) {
+      print(" " + result_exp(i)(j)*2 + " ")
+    }
+    println(" |")
+  }
+  println("Actually")
+  for (i <- 0 until 2){
+    print("| ")
+    for(j <- 0 until 4) {
+      print(" " + peek(c.io.out_result(i)(j)).toString + " ")
+    }
+    println(" |")
+  }
 }
 
 object TPU_Tester extends App {

@@ -14,11 +14,11 @@ class STA_VDBB_Tester(c: STA_VDBB) extends PeekPokeTester(c) {
   //matrices A 8 * 16
   val matrices_B = Array(
     Array(0,1,0,0, 0,0,0,0,  0,1,0,0, 0,0,0,0),
-    Array(0,0,1,0, 0,0,0,0,  0,0,1,0, 0,0,0,0),
-    Array(0,0,0,1, 0,0,0,0,  0,0,0,1, 0,0,0,0),
-    Array(0,0,0,0, 1,0,0,0,  0,0,0,0, 1,0,0,0),
-    Array(0,0,0,0, 0,1,0,0,  0,0,0,0, 0,1,0,0),
-    Array(0,0,0,0, 0,0,1,0,  0,0,0,0, 0,0,1,0),
+    Array(0,0,2,0, 0,0,0,0,  0,0,5,0, 0,0,0,0),
+    Array(0,0,0,3, 0,0,0,0,  0,0,0,1, 0,0,0,0),
+    Array(0,0,0,0, 4,0,0,0,  0,0,0,0, 4,0,0,0),
+    Array(0,0,0,0, 0,5,0,0,  0,0,0,0, 0,1,0,0),
+    Array(0,0,0,0, 0,0,6,0,  0,0,0,0, 0,0,4,0),
     Array(0,0,0,0, 0,0,0,1,  0,0,0,0, 0,0,0,1),
     Array(1,0,0,0, 0,0,0,0,  1,0,0,0, 0,0,0,0))
 
@@ -68,7 +68,7 @@ class STA_VDBB_Tester(c: STA_VDBB) extends PeekPokeTester(c) {
   poke(c.io.in_cal, false.B)
   step(1)
 
-  step(200)
+  step(300)
   for (i <- 0 until 4) {
     print("| ")
     for(j <- 0 until 8) {

@@ -75,8 +75,6 @@ class TPU extends Module{
     S8DP1_2(i).in_B := reg_B(i)
     S8DP1_2(i).in_tag := reg_tag(i)
   }
-  cal_state := (S8DP1_1(0).out_calculate && S8DP1_1(1).out_calculate && S8DP1_1(2).out_calculate && S8DP1_1(3).out_calculate
-    && S8DP1_2(0).out_calculate && S8DP1_2(1).out_calculate && S8DP1_2(2).out_calculate && S8DP1_2(3).out_calculate)
 
   //connect output (default output)
   for (i <- 0 until 4) {
@@ -88,24 +86,26 @@ class TPU extends Module{
   //state
   val fetch :: cal :: stop :: Nil = Enum(3)
   val stateReg = RegInit(stop)
+
   switch(stateReg) {
     is(stop){  //stop
       when (io.in_cal & !RegNext(io.in_cal)) { //rising edge
         stateReg := fetch
+        cal_state := false.B
       }
     }
     is(fetch){  //start fetch at the rising edge of in_cal
       //change state
-      stateReg := cal
+      stateReg := RegNext(cal)
+      cal_control := true.B
     }
     is(cal){ //connect inputs
-      //calculate
-        cal_control := true.B
-
-      //change state
-      when(cal_state) {
+      when((S8DP1_1(0).out_calculate && S8DP1_1(1).out_calculate && S8DP1_1(2).out_calculate && S8DP1_1(3).out_calculate
+        && S8DP1_2(0).out_calculate && S8DP1_2(1).out_calculate && S8DP1_2(2).out_calculate && S8DP1_2(3).out_calculate)
+      ) {
         stateReg := stop
         cal_control := false.B
+        cal_state := true.B
       }
     }
   }

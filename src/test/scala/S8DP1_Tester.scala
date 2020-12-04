@@ -22,6 +22,8 @@ class S8DP1_Tester(c: S8DP1) extends PeekPokeTester(c){
 
   step(1)
   poke(c.io.in_calculate, true.B)
+  step(1)
+  poke(c.io.in_calculate, false.B)
 
 
   var result_exp = 0
@@ -35,6 +37,13 @@ class S8DP1_Tester(c: S8DP1) extends PeekPokeTester(c){
   step(20)
   println("Expected: " + result_exp.toString + " | Actually: " + peek(c.io.result).toString)
 
+
+  step(1)
+  poke(c.io.in_calculate, true.B)
+  step(1)
+  poke(c.io.in_calculate, false.B)
+  step(20)
+  println("Expected: " + (result_exp * 2).toString + " | Actually: " + peek(c.io.result).toString)
 }
 
 object S8DP1_Tester extends App {

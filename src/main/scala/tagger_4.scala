@@ -23,7 +23,6 @@ class tagger_4 extends Module{
     val input = Input(Vec(4, Vec(8, SInt(32.W))))
     val output = Output(Vec(4, Vec(8, Bool())))
   })
-
   for (i <- 0 until 4) {
     for (j <- 0 until 8){
       when (io.input(i)(j) =/= 0.S) {
