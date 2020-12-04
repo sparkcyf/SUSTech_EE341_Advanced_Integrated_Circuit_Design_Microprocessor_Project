@@ -78,7 +78,7 @@ class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
       tag := io.in_tag
       //begin work
 //      when (!io.in_calculate && RegNext(io.in_calculate))
-      when (io.in_calculate && (tag(0) || tag(1) || tag(2) || tag(3) ||
+      when ((io.in_calculate & !RegNext(io.in_calculate)) && (tag(0) || tag(1) || tag(2) || tag(3) ||
         tag(4) || tag(5) || tag(6) || tag(7)))
       { //pos-edge
         stateReg := calculate

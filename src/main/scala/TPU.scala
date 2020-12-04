@@ -49,79 +49,73 @@ class TPU extends Module{
     })
 
   //Define
-  val reg_A = RegInit(Vec(Seq.fill(2)(Vec(Seq.fill(8)(0.S)))))
-  val reg_B = RegInit(Vec(Seq.fill(4)(Vec(Seq.fill(8)(0.S)))))
-  val reg_tag = RegInit(Vec(Seq.fill(2)(Vec(Seq.fill(8)(false.B)))))
+//  val reg_A = RegInit(Vec(Seq.fill(2)(Vec(Seq.fill(8)(0.S)))))
+  val reg_A = io.in_A
+  io.out_A := reg_A
+//  val reg_B = RegInit(Vec(Seq.fill(4)(Vec(Seq.fill(8)(0.S)))))
+  val reg_B = io.in_B
+  io.out_B := reg_B
+//  val reg_tag = RegInit(Vec(Seq.fill(4)(Vec(Seq.fill(8)(false.B)))))
+  val reg_tag = io.in_tag
+  io.out_tag := reg_tag
 
   val S8DP1_1 = Vec(Seq.fill(4)(Module(new S8DP1).io))
   val S8DP1_2 = Vec(Seq.fill(4)(Module(new S8DP1).io))
-  val reg_cal = RegInit(false.B)
+  val cal_state = RegInit(false.B)
+  val cal_control = RegInit(false.B)
+
   for (i <- 0 until 4) {
-    S8DP1_1(i).in_calculate := false.B
-    S8DP1_2(i).in_calculate := false.B
-
+    S8DP1_1(i).in_calculate := cal_control
     S8DP1_1(i).in_A := reg_A(0)
-    S8DP1_1(i).in_B := reg_B(0)(i)
-    S8DP1_1(i).in_tag := reg_tag(0)(i)
-    S8DP1_1(i).in_calculate := reg_cal
+    S8DP1_1(i).in_B := reg_B(i)
+    S8DP1_1(i).in_tag := reg_tag(i)
 
+    S8DP1_2(i).in_calculate := cal_control
     S8DP1_2(i).in_A := reg_A(1)
-    S8DP1_2(i).in_B := reg_B(1)(i)
-    S8DP1_2(i).in_tag := reg_tag(1)(i)
-    S8DP1_2(i).in_calculate := reg_cal
-
+    S8DP1_2(i).in_B := reg_B(i)
+    S8DP1_2(i).in_tag := reg_tag(i)
   }
+  cal_state := (S8DP1_1(0).out_calculate && S8DP1_1(1).out_calculate && S8DP1_1(2).out_calculate && S8DP1_1(3).out_calculate
+    && S8DP1_2(0).out_calculate && S8DP1_2(1).out_calculate && S8DP1_2(2).out_calculate && S8DP1_2(3).out_calculate)
 
   //connect output (default output)
-  io.out_A := reg_A
-  io.out_B := reg_B
-  io.out_tag := reg_tag
   for (i <- 0 until 4) {
     io.out_result(0)(i) := S8DP1_1(i).result
     io.out_result(1)(i) := S8DP1_2(i).result
   }
-  io.out_cal := false.B
+  io.out_cal := cal_state
 
   //state
   val fetch :: cal :: stop :: Nil = Enum(3)
   val stateReg = RegInit(stop)
-
-  //change state
   switch(stateReg) {
     is(stop){  //stop
-      when (!io.in_cal && RegNext(io.in_cal)) {
+      when (io.in_cal & !RegNext(io.in_cal)) { //rising edge
         stateReg := fetch
       }
     }
     is(fetch){  //start fetch at the rising edge of in_cal
-      //A
-      reg_A := io.in_A
-      //B
-      reg_B := io.in_B
-      reg_tag := io.in_tag
       //change state
       stateReg := cal
     }
     is(cal){ //connect inputs
       //calculate
-        reg_cal := true.B
+        cal_control := true.B
 
       //change state
-      when(S8DP1_1(0).out_calculate && S8DP1_1(1).out_calculate && S8DP1_1(2).out_calculate && S8DP1_1(3).out_calculate &&
-        S8DP1_2(0).out_calculate && S8DP1_2(1).out_calculate && S8DP1_2(2).out_calculate && S8DP1_2(3).out_calculate
-      ) {
+      when(cal_state) {
         stateReg := stop
-        reg_cal := false.B
+        cal_control := false.B
       }
     }
   }
 }
 
-//object Main {
-//  def main(args: Array[String]): Unit = {
-//    println("Mux8 main function")
-//    chisel3.Driver.execute(args, () => new Mux8)
-//  }
-//}
+object Main {
+  def main(args: Array[String]): Unit = {
+    println("TPU main function")
+    chisel3.Driver.execute(args, () => new TPU)
+  }
+}
 
 //run --target-dir generated --compiler verilog
