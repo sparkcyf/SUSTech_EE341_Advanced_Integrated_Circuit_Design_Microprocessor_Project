@@ -24,15 +24,14 @@ class tagger_4 extends Module{
     val output = Output(Vec(4, Vec(8, Bool())))
   })
 
-  val taggers = Vec(Seq.fill(4)(Module(new tag).io))
-
-//  val default_taggers_in = RegInit(Vec(Seq.fill(4)(Vec(Seq.fill(8)(0.S(32.W))))))
-  val default_out = RegInit(Vec(Seq.fill(4)(Vec(Seq.fill(8)(false.B)))))
-  io.output := default_out
-
-  for(i <- 0 until 4){
-    taggers(i).in_data := io.input(i)
-    taggers(i).out_tag := io.output(i)
+  for (i <- 0 until 4) {
+    for (j <- 0 until 8){
+      when (io.input(i)(j) =/= 0.S) {
+        io.output(i)(j) := true.B
+      }.otherwise{
+        io.output(i)(j) := false.B
+      }
+    }
   }
 
 }

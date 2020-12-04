@@ -41,6 +41,7 @@ class STA_VDBB_Tester(c: STA_VDBB) extends PeekPokeTester(c) {
     }
     println("| ")
   }
+
   println("Expected:")
   val result_exp = Array(
     Array(0, 0, 0, 0, 0, 0, 0, 0),
@@ -58,6 +59,7 @@ class STA_VDBB_Tester(c: STA_VDBB) extends PeekPokeTester(c) {
     }
     println("| ")
   }
+
   println("Actually:")
   poke(c.io.in_cal, false.B)
   step(1)
@@ -66,7 +68,7 @@ class STA_VDBB_Tester(c: STA_VDBB) extends PeekPokeTester(c) {
   poke(c.io.in_cal, false.B)
   step(1)
 
-  step(100)
+  step(200)
   for (i <- 0 until 4) {
     print("| ")
     for(j <- 0 until 8) {

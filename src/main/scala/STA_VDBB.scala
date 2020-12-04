@@ -88,7 +88,7 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
 
   val tagger = Module(new tagger_4)
   val default_taggers_in = RegInit(Vec(Seq.fill(4)(Vec(Seq.fill(8)(0.S(32.W))))))
-  tagger.io.input := default_taggers_in
+  tagger.io.input := reg_B_1
 
   val default_in_A = RegInit(Vec(Seq.fill(2)(Vec(Seq.fill(8)(0.S(w.W))))))
   val default_in_B = RegInit(Vec(Seq.fill(4)(Vec(Seq.fill(8)(0.S(w.W))))))
@@ -116,7 +116,7 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
   cal_state(2) := TPUs(3).out_cal
   io.out_cal := cal_state(0) && cal_state(1) && cal_state(2)
 
-  val result = RegInit(Vec(Seq.fill(4)(Vec(Seq.fill(8)(0.S(w.W))))))
+  val result = RegInit(Vec(Seq.fill(4)(Vec(Seq.fill(8)(1.S(w.W))))))
   io.out_C := result
   for (i <- 0 until 2){
     for (j <- 0 until 4) {
@@ -149,14 +149,14 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
         is(fetch){
           TPUs(0).in_A := reg_A_1
           TPUs(0).in_B := reg_B_1
-          tagger.io.input := reg_B_1
           TPUs(0).in_tag := tagger.io.output
-          loop_reg := cal
+          loop_reg := RegNext(cal)
         }
         is(cal){
           cal_control(0) := true.B
           when(cal_state(0)){
             cal_control(0) := false.B
+            tagger.io.input := reg_B_2
             stateReg := loop2
             loop_reg := fetch
           }
@@ -168,7 +168,6 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
         is(fetch){
           TPUs(1).in_A := reg_A_2
           TPUs(2).in_B := reg_B_2
-          tagger.io.input := reg_B_2
           TPUs(2).in_tag := tagger.io.output
           loop_reg := cal
         }
@@ -177,6 +176,7 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
 
           when(cal_state(1)){
             cal_control(1) := false.B
+            tagger.io.input := reg_B_3
             stateReg := loop3
             loop_reg := fetch
           }
@@ -188,7 +188,6 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
         is(fetch){
           TPUs(0).in_A := reg_A_3
           TPUs(0).in_B := reg_B_3
-          tagger.io.input := reg_B_3
           TPUs(0).in_tag := tagger.io.output
           loop_reg := cal
         }
@@ -199,6 +198,7 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
           when(cal_state(0) && cal_state(2)){
             cal_control(0) := false.B
             cal_control(2) := false.B
+            tagger.io.input := reg_B_4
             stateReg := loop4
             loop_reg := fetch
           }
@@ -210,7 +210,6 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
         is(fetch){
           TPUs(1).in_A := reg_A_4
           TPUs(2).in_B := reg_B_4
-          tagger.io.input := reg_B_4
           TPUs(2).in_tag := tagger.io.output
           loop_reg := cal
         }
