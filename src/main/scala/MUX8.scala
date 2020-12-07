@@ -1,4 +1,5 @@
 import chisel3._
+import chisel3.util._
 
 /*
 Description: Mux8 is a selector to select 1 bit form 8 bits input according to the TAG (First non-zero bit)
@@ -15,6 +16,9 @@ Outputs:
 Function:
   output the int represented by the first non-zero boolean and turn this TAG into 0
 
+Author: YUAN Tong
+Version: V2.0
+Date: 3/12/2020
  */
 
 /**
@@ -32,12 +36,30 @@ Function:
 
 class MUX8(val tag_width: Int = 8) extends Module {
   val io = IO(new Bundle {
-    val int_in = Input(Vec(tag_width, SInt(32.W)))
-    val tag = Input(Vec(tag_width, Bool()))
-    val choice = Output(SInt(32.W))
+    val in_tag = Input(Vec(tag_width, Bool()))
+    val choice = Output(UInt(32.W))
   })
+  io.choice := 0.U
 
-  io.choice := chisel3.util.Mux1H(io.tag, io.int_in)
+  when(io.in_tag(0)){
+    io.choice := 0.U
+  }.elsewhen(io.in_tag(1)){
+    io.choice := 1.U
+  }.elsewhen(io.in_tag(2)){
+    io.choice := 2.U
+  }.elsewhen(io.in_tag(3)){
+    io.choice := 3.U
+  }.elsewhen(io.in_tag(4)){
+    io.choice := 4.U
+  }.elsewhen(io.in_tag(5)){
+    io.choice := 5.U
+  }.elsewhen(io.in_tag(6)){
+    io.choice := 6.U
+  }.elsewhen(io.in_tag(7)){
+    io.choice := 7.U
+  }.otherwise{
+    io.choice := 0.U
+  }
 
 }
 
