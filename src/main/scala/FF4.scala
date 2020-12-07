@@ -60,11 +60,11 @@ class FF4(val w: Int = 32, w_tag: Int = 8, val data_row: Int = BLOCK_SIZE_FF4.DA
     val out_tag = Output(Vec(tag_row, Vec(tag_col, Bool())))
   })
 
-  val data = RegInit(Vec(Seq.fill(data_row)(Vec(Seq.fill(data_col)(0.S(w.W))))))
-  val tag = RegInit(Vec(Seq.fill(tag_row)(Vec(Seq.fill(tag_col)(false.B)))))
+  var data = RegInit(Vec(Seq.fill(data_row)(Vec(Seq.fill(data_col)(0.S(w.W))))))
+  var tag = RegInit(Vec(Seq.fill(tag_row)(Vec(Seq.fill(tag_col)(false.B)))))
 
-  data := io.in_data
-  tag := io.in_tag
+  data = io.in_data
+  tag = io.in_tag
 
   io.out_data := data
   io.out_tag := tag

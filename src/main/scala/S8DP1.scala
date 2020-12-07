@@ -39,12 +39,14 @@ class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
     val out_calculate = Output(Bool())
   })
 
+
   val tag = RegInit(Vec(Seq.fill(tag_width)(false.B)))
   val index = RegInit(Vec(0.U, 1.U, 2.U, 3.U, 4.U, 5.U, 6.U, 7.U))
   val acc = RegInit(0.S(w.W))
   io.result := acc
   val cal = RegInit(false.B)
   io.out_calculate := cal //default value
+
 
   val mux = Module(new MUX8)
   mux.io.in_tag := tag
@@ -86,6 +88,7 @@ class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
       }
     }
   }
+
 
 
 

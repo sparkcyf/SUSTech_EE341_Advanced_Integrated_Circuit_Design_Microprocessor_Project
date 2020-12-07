@@ -53,6 +53,7 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
     val out_cal = Output(Bool())
   })
 
+
   /*
    registers for blocks
    A:
