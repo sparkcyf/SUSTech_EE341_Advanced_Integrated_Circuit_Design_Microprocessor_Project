@@ -119,11 +119,11 @@ class conv_2D extends Module {
 
 }
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    println("CONV2D for input image")
-    chisel3.Driver.execute(args, () => new conv_2D)
-  }
-}
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    println("CONV2D for input image")
+//    chisel3.Driver.execute(args, () => new conv_2D)
+//  }
+//}
 
 //run --target-dir generated --compiler verilog

@@ -34,9 +34,9 @@ Date: 3/12/2020
  * Check here: https://github.com/chipsalliance/chisel3/wiki/Cookbook#how-do-i-create-a-vec-of-bools-from-a-uint
  */
 
-class MUX8(val tag_width: Int = 8) extends Module {
+class MUX extends Module {
   val io = IO(new Bundle {
-    val in_tag = Input(Vec(tag_width, Bool()))
+    val in_tag = Input(Vec(9, Bool()))
     val choice = Output(UInt(32.W))
   })
   io.choice := 0.U
@@ -57,6 +57,8 @@ class MUX8(val tag_width: Int = 8) extends Module {
     io.choice := 6.U
   }.elsewhen(io.in_tag(7)){
     io.choice := 7.U
+  }.elsewhen(io.in_tag(8)){
+    io.choice := 8.U
   }.otherwise{
     io.choice := 0.U
   }
