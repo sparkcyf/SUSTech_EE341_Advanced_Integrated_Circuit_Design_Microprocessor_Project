@@ -175,11 +175,11 @@ class TPU(IMG_W:Int, CHANNEL_D:Int) extends Module{
   }
 }
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    println("TPU main function")
-    chisel3.Driver.execute(args, () => new TPU(4,4))
-  }
-}
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    println("TPU main function")
+//    chisel3.Driver.execute(args, () => new TPU(4,4))
+//  }
+//}
 
 //run --target-dir generated --compiler verilog
