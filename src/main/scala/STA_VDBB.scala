@@ -195,11 +195,11 @@ class STA_VDBB(val w: Int = 32, val row_A: Int = BLOCK_SIZE_VDBB.ROW_A, val col_
 }
 
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    println("STA-VDBB main function")
-    chisel3.Driver.execute(args, () => new STA_VDBB())
-  }
-}
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    println("STA-VDBB main function")
+//    chisel3.Driver.execute(args, () => new STA_VDBB())
+//  }
+//}
 
 //run --target-dir generated --compiler verilog
