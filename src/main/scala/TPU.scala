@@ -72,12 +72,19 @@ class TPU(IMG_W:Int, CHANNEL_D:Int) extends Module{
       for (i <- 0 until 9){
         PEs(row)(col).io.in_A(i) := io.in_A(i)(row)
         PEs(row)(col).io.in_B(i) := io.in_B(i)(col)
-        if(io.in_B(i)(col) == 0){
-          PEs(row)(col).io.in_tag(i) := false.B
-        }
-        else {
+
+        val sprase = true.B
+        when(sprase){
+          if(io.in_B(i)(col) == 0){
+            PEs(row)(col).io.in_tag(i) := false.B
+          }
+          else {
+            PEs(row)(col).io.in_tag(i) := true.B
+          }
+        }.otherwise{
           PEs(row)(col).io.in_tag(i) := true.B
         }
+
       }
 
 
