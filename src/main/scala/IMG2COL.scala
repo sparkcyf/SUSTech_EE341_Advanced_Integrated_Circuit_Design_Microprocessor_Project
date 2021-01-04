@@ -10,13 +10,13 @@ class IMG2COL(MATRIX_SIZE:Int, KERNEL_SIZE:Int) extends Module {
   val io = IO(new Bundle {
     val in_matrix = Input(Vec(INPUT_MATRIX_SIZE, Vec(INPUT_MATRIX_SIZE, SInt(32.W))))
     //val in_kernel = Input(Vec(INPUT_KERNEL_SIZE, Vec(INPUT_KERNEL_SIZE, SInt(32.W))))
-    val in_cal = Input(Bool())
+    //val in_cal = Input(Bool())
 
     //val out_matrix = Output(Vec(INPUT_MATRIX_SIZE, Vec(INPUT_MATRIX_SIZE, SInt(32.W))))
     //val out_kernel = Output(Vec(INPUT_KERNEL_SIZE, Vec(INPUT_KERNEL_SIZE, SInt(32.W))))
 
     //val out_result = Output(Vec((INPUT_MATRIX_SIZE*INPUT_MATRIX_SIZE), Vec((INPUT_KERNEL_SIZE*INPUT_KERNEL_SIZE), SInt(32.W))))
-    val out_result = Output(Vec((INPUT_MATRIX_SIZE*INPUT_MATRIX_SIZE), Vec((INPUT_KERNEL_SIZE*INPUT_KERNEL_SIZE), SInt(32.W))))
+    val out_result = Output(Vec(((INPUT_MATRIX_SIZE-2)*(INPUT_MATRIX_SIZE-2)), Vec((INPUT_KERNEL_SIZE*INPUT_KERNEL_SIZE), SInt(32.W))))
     //val out_cal = Output(Bool())
   })
 
@@ -36,13 +36,15 @@ class IMG2COL(MATRIX_SIZE:Int, KERNEL_SIZE:Int) extends Module {
 
 
   //zero padding for data matrix
-  val input_matrix_padding_size = INPUT_MATRIX_SIZE+2
-  val input_matrix_padding = RegInit(Vec(Seq.fill(INPUT_MATRIX_SIZE+2)(Vec(Seq.fill(INPUT_MATRIX_SIZE+2)(0.S(32.W))))))
-    for (i <- 1 until (INPUT_MATRIX_SIZE)) {
-      for (j <- 1 until (INPUT_MATRIX_SIZE)) {
-        input_matrix_padding(i)(j) := io.in_matrix(i-1)(j-1)
-      }
-    }
+
+  //no need for padding
+//  val input_matrix_padding_size = INPUT_MATRIX_SIZE+2
+//  val input_matrix_padding = RegInit(Vec(Seq.fill(INPUT_MATRIX_SIZE+2)(Vec(Seq.fill(INPUT_MATRIX_SIZE+2)(0.S(32.W))))))
+//    for (i <- 1 until (INPUT_MATRIX_SIZE)) {
+//      for (j <- 1 until (INPUT_MATRIX_SIZE)) {
+//        input_matrix_padding(i)(j) := io.in_matrix(i-1)(j-1)
+//      }
+//    }
 
   //img2col
 
@@ -63,18 +65,34 @@ class IMG2COL(MATRIX_SIZE:Int, KERNEL_SIZE:Int) extends Module {
    */
 
 
-  val conv_col_matrix = RegInit(Vec(Seq.fill(INPUT_MATRIX_SIZE*INPUT_MATRIX_SIZE)(Vec(Seq.fill(INPUT_KERNEL_SIZE*INPUT_KERNEL_SIZE)(0.S(32.W))))))
-  for (i <- 0 until (INPUT_MATRIX_SIZE-1)) {
-    for (j <- 0 until (INPUT_MATRIX_SIZE-1)) {
-      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(0) := input_matrix_padding(i)(j)
-      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(1) := input_matrix_padding(i)(j+1)
-      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(2) := input_matrix_padding(i)(j+2)
-      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(3) := input_matrix_padding(i+1)(j)
-      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(4) := input_matrix_padding(i+1)(j+1)
-      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(5) := input_matrix_padding(i+1)(j+2)
-      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(6) := input_matrix_padding(i+2)(j)
-      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(7) := input_matrix_padding(i+2)(j+1)
-      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(8) := input_matrix_padding(i+2)(j+2)
+//  val conv_col_matrix = RegInit(Vec(Seq.fill(INPUT_MATRIX_SIZE*INPUT_MATRIX_SIZE)(Vec(Seq.fill(INPUT_KERNEL_SIZE*INPUT_KERNEL_SIZE)(0.S(32.W))))))
+//  for (i <- 0 until (INPUT_MATRIX_SIZE-1)) {
+//    for (j <- 0 until (INPUT_MATRIX_SIZE-1)) {
+//      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(0) := input_matrix_padding(i)(j)
+//      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(1) := input_matrix_padding(i)(j+1)
+//      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(2) := input_matrix_padding(i)(j+2)
+//      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(3) := input_matrix_padding(i+1)(j)
+//      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(4) := input_matrix_padding(i+1)(j+1)
+//      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(5) := input_matrix_padding(i+1)(j+2)
+//      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(6) := input_matrix_padding(i+2)(j)
+//      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(7) := input_matrix_padding(i+2)(j+1)
+//      conv_col_matrix((i)*INPUT_MATRIX_SIZE+j)(8) := input_matrix_padding(i+2)(j+2)
+//
+//    }
+//  }
+
+  val conv_col_matrix = RegInit(Vec(Seq.fill((INPUT_MATRIX_SIZE-2)*(INPUT_MATRIX_SIZE-2))(Vec(Seq.fill(INPUT_KERNEL_SIZE*INPUT_KERNEL_SIZE)(0.S(32.W))))))
+  for (i <- 0 until (INPUT_MATRIX_SIZE-1-2)) {
+    for (j <- 0 until (INPUT_MATRIX_SIZE-1-2)) {
+      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(0) := io.in_matrix(i)(j)
+      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(1) := io.in_matrix(i)(j+1)
+      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(2) := io.in_matrix(i)(j+2)
+      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(3) := io.in_matrix(i+1)(j)
+      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(4) := io.in_matrix(i+1)(j+1)
+      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(5) := io.in_matrix(i+1)(j+2)
+      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(6) := io.in_matrix(i+2)(j)
+      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(7) := io.in_matrix(i+2)(j+1)
+      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(8) := io.in_matrix(i+2)(j+2)
 
     }
   }

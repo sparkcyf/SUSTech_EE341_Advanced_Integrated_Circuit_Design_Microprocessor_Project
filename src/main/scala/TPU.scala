@@ -35,6 +35,7 @@ Date: 3/12/2020
 
 class TPU(IMG_W:Int, CHANNEL_D:Int) extends Module{
   val img_L = IMG_W
+  //img_L is width^2
   val channel_D = CHANNEL_D
 
   val io = IO(new Bundle {
