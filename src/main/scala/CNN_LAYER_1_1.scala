@@ -375,14 +375,24 @@ class CNN_LAYER_1_1(IMG_W: Int, CHANNEL_D: Int) extends Module {
   //after transfer IMG: (62*62)*9 WEIGHT: 9*10
 
   //add bias & colum2img
+
+  val matrix_after_conv = RegInit(Vec(Seq.fill(W_after_conv)(Vec(Seq.fill(W_after_conv)(Vec(Seq.fill(channel_D)(0.S(32.W))))))))
+
   for (i <- 0 until (W_after_conv - 1)) { //ROW
     for (j <- 0 until (W_after_conv - 1)) { //COL
       for (k <- 0 until (channel_D - 1)) { //channel
         //ROW = i*W_after_conv + j
-        io.out_result(i)(j)(k) := (CONV_1_1_R.io.out_result(k)(i * W_after_conv + j) + CONV_1_1_R.io.out_result(k)(i * W_after_conv + j) + CONV_1_1_R.io.out_result(k)(i * W_after_conv + j) * bias_matrix(k))
+        matrix_after_conv(i)(j)(k) := (CONV_1_1_R.io.out_result(k)(i * W_after_conv + j) + CONV_1_1_R.io.out_result(k)(i * W_after_conv + j) + CONV_1_1_R.io.out_result(k)(i * W_after_conv + j)) * bias_matrix(k)
       }
     }
   }
+
+
+  //RELU
+
+  val matrix_relu = Module(new RELU(W_after_conv, 10))
+  matrix_relu.io.in_matrix := matrix_after_conv
+  io.out_result := matrix_relu.io.out_result
 
 
 
