@@ -84,15 +84,15 @@ class IMG2COL(MATRIX_SIZE:Int, KERNEL_SIZE:Int) extends Module {
   val conv_col_matrix = RegInit(Vec(Seq.fill((INPUT_MATRIX_SIZE-2)*(INPUT_MATRIX_SIZE-2))(Vec(Seq.fill(INPUT_KERNEL_SIZE*INPUT_KERNEL_SIZE)(0.S(32.W))))))
   for (i <- 0 until (INPUT_MATRIX_SIZE-1-2)) {
     for (j <- 0 until (INPUT_MATRIX_SIZE-1-2)) {
-      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(0) := io.in_matrix(i)(j)
-      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(1) := io.in_matrix(i)(j+1)
-      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(2) := io.in_matrix(i)(j+2)
-      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(3) := io.in_matrix(i+1)(j)
-      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(4) := io.in_matrix(i+1)(j+1)
-      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(5) := io.in_matrix(i+1)(j+2)
-      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(6) := io.in_matrix(i+2)(j)
-      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(7) := io.in_matrix(i+2)(j+1)
-      conv_col_matrix(((i)*INPUT_MATRIX_SIZE-2)+j)(8) := io.in_matrix(i+2)(j+2)
+      conv_col_matrix((i*(INPUT_MATRIX_SIZE-2))+j)(0) := io.in_matrix(i)(j)
+      conv_col_matrix((i*(INPUT_MATRIX_SIZE-2))+j)(1) := io.in_matrix(i)(j+1)
+      conv_col_matrix((i*(INPUT_MATRIX_SIZE-2))+j)(2) := io.in_matrix(i)(j+2)
+      conv_col_matrix((i*(INPUT_MATRIX_SIZE-2))+j)(3) := io.in_matrix(i+1)(j)
+      conv_col_matrix((i*(INPUT_MATRIX_SIZE-2))+j)(4) := io.in_matrix(i+1)(j+1)
+      conv_col_matrix((i*(INPUT_MATRIX_SIZE-2))+j)(5) := io.in_matrix(i+1)(j+2)
+      conv_col_matrix((i*(INPUT_MATRIX_SIZE-2))+j)(6) := io.in_matrix(i+2)(j)
+      conv_col_matrix((i*(INPUT_MATRIX_SIZE-2))+j)(7) := io.in_matrix(i+2)(j+1)
+      conv_col_matrix((i*(INPUT_MATRIX_SIZE-2))+j)(8) := io.in_matrix(i+2)(j+2)
 
     }
   }

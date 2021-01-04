@@ -404,9 +404,9 @@ class CNN_LAYER_1_1(IMG_W: Int, CHANNEL_D: Int) extends Module {
   //}
 }
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    println("CONV2D for input image")
-    chisel3.Driver.execute(args, () => new CNN_LAYER_1_1(64,10))
-  }
-}
+//object Main {
+//  def main(args: Array[String]): Unit = {
+//    println("CONV2D for input image")
+//    chisel3.Driver.execute(args, () => new CNN_LAYER_1_1(64,10))
+//  }
+//}
