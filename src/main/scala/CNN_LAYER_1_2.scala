@@ -10,15 +10,21 @@ class CNN_LAYER_1_2(IMG_W: Int, CHANNEL_D: Int) extends Module {
   //CHN_D = 10
 
   val io = IO(new Bundle {
-    val in_matrix = Input(Vec(img_L, Vec(img_L, Vec(channel_D, SInt(32.W)))))
-    val in_cal = Input(Bool())
+    val in_matrix = Input(Vec(64, Vec(64, Vec(3, SInt(32.W)))))
+    //val in_cal = Input(Bool())
     val out_result = Output(Vec((img_L - 2) / 2, Vec((img_L - 2) / 2, Vec(channel_D, SInt(32.W)))))
     //    val out_cal = Output(Bool())
   })
 
+
+
   //input
   val input_matrix = Module(new CNN_LAYER_1_1(64, 10))
 
+  //connect input
+  input_matrix.io.in_matrix := io.in_matrix
+
+  //width
   val W_after_conv = img_L - 2
 
 
