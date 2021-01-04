@@ -25,37 +25,46 @@ Version: V3.0 (Test passed)
 Date: 3/12/2020
  */
 
-class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
+
+class S9DP1(val tag_width: Int = 9, val w: Int = 32) extends Module{
   val io = IO(new Bundle {
 //    val CLK = Input(Bool())
 
     val in_A = Input(Vec(tag_width, SInt(w.W)))
     val in_B = Input(Vec(tag_width, SInt(w.W)))
     val in_tag = Input(Vec(tag_width, Bool())) //BOOL, NOT Int
+    val out_A = Output(Vec(tag_width, SInt(w.W)))
+    val out_B = Output(Vec(tag_width, SInt(w.W)))
+    val out_tag = Output(Vec(tag_width, Bool()))
 
     val result = Output(SInt(w.W))
 
-    val in_calculate = Input(Bool())
-    val out_calculate = Output(Bool())
+    val in_cal_control = Input(Bool())
+    val in_cal_state = Input(Bool())
+    val out_cal_control = Output(Bool())
+    val out_cal_state = Output(Bool())
   })
 
+  io.out_A := io.in_A
+  io.out_B := io.in_B
+  io.out_cal_control := io.in_cal_control
 
   val tag = RegInit(Vec(Seq.fill(tag_width)(false.B)))
-  val index = RegInit(Vec(0.U, 1.U, 2.U, 3.U, 4.U, 5.U, 6.U, 7.U))
+  io.out_tag := io.in_tag
+
   val acc = RegInit(0.S(w.W))
+  val acc_temp = RegInit(0.S(w.W))
   io.result := acc
+
   val cal = RegInit(false.B)
-  io.out_calculate := cal //default value
+  io.out_cal_state := cal && io.in_cal_state //default value
 
-
-  val mux = Module(new MUX8)
+  val mux = Module(new MUX)
   mux.io.in_tag := tag
 
   //state
   val calculate :: refresh :: judge :: stop :: Nil = Enum(4)
   val stateReg = RegInit(stop)
-
-  val acc_temp = RegInit(0.S(w.W))
 
   switch(stateReg) {
     is(calculate) {
@@ -69,7 +78,7 @@ class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
     }
     is(judge){
       when (((!tag(0) && !tag(1)) && (!tag(2) && !tag(3))) &&
-        ((!tag(4) && !tag(5)) && (!tag(6) && !tag(7)))) {
+        ((!tag(4) && !tag(5)) && (!tag(6) && !tag(7))) && !tag(8)) {
         stateReg := stop
         cal := true.B
       }.otherwise{
@@ -80,20 +89,14 @@ class S8DP1(val tag_width: Int = 8, val w: Int = 32) extends Module{
       tag := io.in_tag
       //begin work
 //      when (!io.in_calculate && RegNext(io.in_calculate))
-      when ((io.in_calculate & !RegNext(io.in_calculate)) && (tag(0) || tag(1) || tag(2) || tag(3) ||
-        tag(4) || tag(5) || tag(6) || tag(7)))
+      when ((io.in_cal_control & !RegNext(io.in_cal_control)) && (tag(0) || tag(1) || tag(2) || tag(3) ||
+        tag(4) || tag(5) || tag(6) || tag(7) || tag(8)))
       { //pos-edge
         stateReg := calculate
         cal := false.B
       }
     }
   }
-
-
-
-
-
-
 }
 
 //object Main {
